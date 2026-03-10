@@ -403,7 +403,7 @@ tbody td:last-child{border-right:none}
         <input class="ti" id="slideTitle" value="Equipment Health Monitoring – Q1 2026">
         <span class="tl">Tgl:</span><input type="date" class="di" id="slideDate">
         <input type="hidden" id="slideUnit" value="PT Kilang Pertamina Balikpapan">
-        <div class="onbar"><span id="onlineCnt" style="font-size:11px;font-weight:600;color:#16A34A;cursor:pointer" onclick="toggleOnlineList()" title="Lihat siapa online">● 0 online</span></div>
+        <div class="onbar"><span id="onlineCnt" style="font-size:11px;font-weight:600;color:#16A34A" title="Lihat siapa online">● 0 online</span></div>
       </div>
       <div class="dsec" id="dashSec"></div>
       <div class="legstrip">
@@ -607,9 +607,32 @@ function om(id){$(id).classList.add('on');}
 function cm(id){$(id).classList.remove('on');}
 window.cm=cm;window.om=om;
 window.toggleOnlineList=function(){
+  if(uProf?.role!=='admin'){return;}
   const m=$('onlineModal');
   if(!m)return;
-  m.style.display=m.style.display==='none'?'block':'none';
+  const isOpen=m.style.display==='block';
+  m.style.display=isOpen?'none':'block';
+  if(!isOpen){
+    // Fresh fetch when opening
+    const list=$('onlineList');
+    list.innerHTML='<p style="padding:10px 14px;color:#94A3B8;font-size:12px">Memuat...</p>';
+    import('https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js').then(({ref:dbRef,get})=>{
+      get(dbRef(rtdb,'online')).then(snap=>{
+        if(!snap.exists()||!Object.keys(snap.val()).length){
+          list.innerHTML='<p style="padding:10px 14px;color:#94A3B8;font-size:12px">Tidak ada user online.</p>';
+          return;
+        }
+        const users=snap.val();
+        list.innerHTML=Object.values(users).map(u=>`
+          <div style="display:flex;align-items:center;gap:10px;padding:8px 14px;border-bottom:1px solid #F1F5F9">
+            <div style="width:8px;height:8px;border-radius:50%;background:#16A34A;flex-shrink:0"></div>
+            <span style="font-size:12px;font-weight:600;color:#1E293B">${u.name||'Unknown'}</span>
+          </div>`).join('');
+      }).catch(e=>{
+        list.innerHTML='<p style="padding:10px 14px;color:#DC2626;font-size:12px">⚠️ Tidak bisa membaca data. Cek RTDB rules.</p>';
+      });
+    });
+  }
 };
 // Close online modal when clicking outside
 document.addEventListener('click',function(e){
@@ -676,6 +699,19 @@ async function routeUser(user){
   // Set role class on body
   document.body.classList.remove('isadm','isview','iseditor');
   document.body.classList.add(displayRole==='admin'?'isadm':displayRole==='editor'?'iseditor':'isview');
+  // Online counter clickable only for admin
+  const onCnt=$('onlineCnt');
+  if(onCnt){
+    if(displayRole==='admin'){
+      onCnt.style.cursor='pointer';
+      onCnt.onclick=()=>toggleOnlineList();
+      onCnt.title='Klik untuk lihat siapa online';
+    } else {
+      onCnt.style.cursor='default';
+      onCnt.onclick=null;
+      onCnt.title='';
+    }
+  }
   $('loginPage').style.display='none';
   $('pendingPage').style.display='none';
   $('appPage').style.display='block';
