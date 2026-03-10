@@ -641,9 +641,21 @@ async function routeUser(user){
   const displayRole=(uProf.role||'viewer').toLowerCase().trim();
   $('uName').textContent=displayName;
   $('uRole').textContent=displayRole.toUpperCase();
-  if(displayRole==='admin')document.body.classList.add('isadm');
-  if(displayRole==='viewer')document.body.classList.add('isview');
-  if(displayRole==='editor')document.body.classList.add('iseditor');
+  // Remove old classes first
+  document.body.classList.remove('isadm','isview','iseditor');
+  if(displayRole==='admin'){
+    document.body.classList.add('isadm');
+    // Force show admin tab and add button directly
+    const adminTab=document.getElementById('t2');
+    if(adminTab)adminTab.style.display='flex';
+    document.querySelectorAll('.btnadd').forEach(b=>b.style.display='inline-flex');
+  } else if(displayRole==='editor'){
+    document.body.classList.add('iseditor');
+    document.querySelectorAll('.btnadd').forEach(b=>b.style.display='inline-flex');
+  } else {
+    document.body.classList.add('isview');
+    document.querySelectorAll('.btnadd').forEach(b=>b.style.display='none');
+  }
   $('loginPage').style.display='none';
   $('pendingPage').style.display='none';
   $('appPage').style.display='block';
