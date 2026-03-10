@@ -234,6 +234,44 @@ tbody td:last-child{border-right:none}
 .aab-a{background:#DCFCE7;color:#166534}.aab-a:hover{background:#BBF7D0}
 .aab-b{background:#FEE2E2;color:#991B1B}.aab-b:hover{background:#FECACA}
 .aab-u{background:#DBEAFE;color:#1D4ED8}.aab-u:hover{background:#BFDBFE}
+/* ADMIN MODAL */
+.ummodal{position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:400;display:none;align-items:center;justify-content:center;padding:16px}
+.ummodal.on{display:flex}
+.umbox{background:#fff;border-radius:16px;width:100%;max-width:700px;max-height:90vh;display:flex;flex-direction:column;box-shadow:0 12px 48px rgba(0,0,0,.3);overflow:hidden}
+.umbox-hdr{padding:18px 22px 14px;border-bottom:1px solid var(--border);flex-shrink:0}
+.umbox-hdr h3{font-size:15px;font-weight:800;color:var(--text);display:flex;align-items:center;gap:8px}
+.umbox-info{background:#EFF6FF;border:1px solid #BFDBFE;border-radius:8px;padding:10px 13px;font-size:11.5px;color:#1D4ED8;margin-top:10px;line-height:1.6}
+.umbox-body{overflow-y:auto;padding:14px 22px 18px;flex:1}
+.umbox-close{float:right;background:none;border:none;font-size:18px;cursor:pointer;color:var(--muted);line-height:1}
+.umbox-close:hover{color:var(--text)}
+.um-count{font-size:12px;font-weight:600;color:var(--muted);margin-bottom:11px}
+.um-count span{color:var(--red);font-weight:800}
+/* User row */
+.umrow{display:flex;align-items:center;gap:11px;padding:10px 12px;border-radius:10px;border:1px solid var(--border);margin-bottom:7px;background:#fff;transition:background .1s}
+.umrow:hover{background:#F8FAFC}
+.umav{width:38px;height:38px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:800;color:#fff;flex-shrink:0}
+.uminfo{flex:1;min-width:0}
+.umname{font-size:12.5px;font-weight:700;color:var(--text)}
+.umemail{font-size:10.5px;color:var(--muted);margin-top:1px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.umrole{display:inline-block;padding:2px 8px;border-radius:8px;font-size:9.5px;font-weight:700;text-transform:uppercase;margin-right:5px}
+.umr-admin{background:#FEE2E2;color:#991B1B}
+.umr-editor{background:#DBEAFE;color:#1D4ED8}
+.umr-viewer{background:#F1F5F9;color:#475569}
+.umst{display:inline-block;padding:2px 8px;border-radius:8px;font-size:9.5px;font-weight:700}
+.umst-a{background:#DCFCE7;color:#166534}
+.umst-p{background:#FEF3C7;color:#92400E}
+.umst-b{background:#FEE2E2;color:#991B1B}
+.umst-you{background:#F1F5F9;color:#64748B;font-style:italic}
+.umact{display:flex;gap:5px;flex-shrink:0}
+.umbtn{border:1px solid var(--border);background:#fff;border-radius:7px;padding:5px 10px;font-size:11px;font-weight:600;cursor:pointer;font-family:'Outfit',sans-serif;display:flex;align-items:center;gap:4px;transition:all .15s}
+.umbtn:hover{background:#F1F5F9}
+.umbtn-ed{color:#1D4ED8;border-color:#BFDBFE}.umbtn-ed:hover{background:#EFF6FF}
+.umbtn-del{color:#DC2626;border-color:#FECACA}.umbtn-del:hover{background:#FEE2E2}
+/* Edit user modal */
+.umedit{position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:500;display:none;align-items:center;justify-content:center}
+.umedit.on{display:flex}
+.umedit-box{background:#fff;border-radius:14px;padding:22px 24px;width:320px;box-shadow:0 12px 48px rgba(0,0,0,.3)}
+.umedit-box h3{font-size:14px;font-weight:700;margin-bottom:14px;display:flex;align-items:center;gap:7px}
 /* MODAL */
 .mbg{position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:300;display:none;align-items:center;justify-content:center}
 .mbg.on{display:flex}
@@ -442,9 +480,50 @@ tbody td:last-child{border-right:none}
       <div class="admbox">
         <div class="admhdr">
           <h3>👥 Manajemen User</h3>
-          <button class="btnsm" style="background:rgba(255,255,255,.1);color:#fff;border-color:rgba(255,255,255,.2)" onclick="loadUsers()">🔄 Refresh</button>
+          <button class="btnsm" style="background:rgba(255,255,255,.1);color:#fff;border-color:rgba(255,255,255,.2)" onclick="openUserModal()">👥 Kelola User</button>
         </div>
-        <div style="overflow-x:auto"><div id="userList" style="padding:14px;font-size:12px;color:var(--muted)">Memuat…</div></div>
+        <div style="padding:32px;text-align:center;color:rgba(255,255,255,.4)">
+          <div style="font-size:42px;margin-bottom:10px">👥</div>
+          <p style="font-size:13px">Klik <b style="color:#fff">Kelola User</b> untuk manage akun tim</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- USER MANAGEMENT MODAL -->
+    <div class="ummodal" id="umModal">
+      <div class="umbox">
+        <div class="umbox-hdr">
+          <button class="umbox-close" onclick="closeUserModal()">×</button>
+          <h3>👥 User Management</h3>
+          <div class="umbox-info">ℹ️ User baru dapat mendaftar sendiri melalui tombol <b>"Request Access"</b> di halaman login. Permintaan akan muncul di sini untuk di-approve.</div>
+        </div>
+        <div class="umbox-body">
+          <div class="um-count" id="umCount">Memuat…</div>
+          <div id="umList">Memuat…</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- EDIT USER MODAL -->
+    <div class="umedit" id="umEdit">
+      <div class="umedit-box">
+        <h3>✏️ Edit User</h3>
+        <label class="ll">Role</label>
+        <select class="li" id="umEditRole" style="margin-bottom:13px">
+          <option value="viewer">Viewer</option>
+          <option value="editor">Editor</option>
+          <option value="admin">Admin</option>
+        </select>
+        <label class="ll">Status</label>
+        <select class="li" id="umEditStatus">
+          <option value="active">Active</option>
+          <option value="pending">Pending</option>
+          <option value="blocked">Blocked</option>
+        </select>
+        <div class="mrow" style="margin-top:14px">
+          <button class="bm bmc" onclick="closeEditUser()">Batal</button>
+          <button class="bm bms" onclick="saveEditUser()">Simpan</button>
+        </div>
       </div>
     </div>
   </div>
@@ -550,6 +629,8 @@ async function routeUser(user){
   $('uRole').textContent=uProf.role||'viewer';
   if(uProf.role==='admin')document.body.classList.add('isadm');
   if(uProf.role==='viewer')document.body.classList.add('isview');
+  $('loginPage').style.display='none';
+  $('pendingPage').style.display='none';
   $('appPage').style.display='block';
   $('slideDate').value=new Date().toISOString().split('T')[0];
   startEquipSync();
@@ -652,34 +733,66 @@ window.exportSnapPDF=function(id){
 };
 
 // ── ADMIN ────────────────────────────────────────
+// Avatar color palette
+const avColors=['#C0392B','#1D4ED8','#16A34A','#D97706','#7C3AED','#0891B2','#BE185D','#065F46'];
+function avColor(name){let h=0;for(let c of(name||'?'))h=(h*31+c.charCodeAt(0))%avColors.length;return avColors[h];}
+function avInit(name){return(name||'?').split(' ').map(w=>w[0]).join('').toUpperCase().slice(0,2);}
+
+let editUid=null,allUsers=[];
+window.openUserModal=function(){
+  document.getElementById('umModal').classList.add('on');
+  loadUsers();
+};
+window.closeUserModal=function(){document.getElementById('umModal').classList.remove('on');};
+window.closeEditUser=function(){document.getElementById('umEdit').classList.remove('on');};
+
 window.loadUsers=function(){
-  const wrap=$('userList');wrap.innerHTML='<p>Memuat…</p>';
+  const list=$('umList'),cnt=$('umCount');
+  list.innerHTML='<p style="color:var(--muted);font-size:12px;padding:10px">Memuat…</p>';
   const q=query(collection(db,'icu_users'),orderBy('createdAt'));
   onSnapshot(q,snap=>{
-    const users=snap.docs.map(d=>({id:d.id,...d.data()}));
-    if(!users.length){wrap.innerHTML='<p>Belum ada user.</p>';return;}
-    let html='<div class="ugrid" style="overflow-x:auto">'
-      +'<div class="ugh">Nama / Email</div><div class="ugh">Tanggal</div>'
-      +'<div class="ugh">Role</div><div class="ugh">Status</div><div class="ugh">Aksi</div>';
-    users.forEach(u=>{
-      const dt=u.createdAt?.toDate?u.createdAt.toDate().toLocaleDateString('id-ID',{day:'numeric',month:'short',year:'numeric'}):'-';
-      const sc=u.status==='active'?'ust-a':u.status==='blocked'?'ust-b':'ust-p';
-      html+=`<div class="ugc" style="font-weight:600">${u.fullName||'–'}<br><span style="font-size:10px;color:var(--muted);font-weight:400">${u.email}</span></div>
-        <div class="ugc" style="font-size:11px;color:var(--muted)">${dt}</div>
-        <div class="ugc"><select class="rsel" onchange="setRole('${u.id}',this.value)">
-          <option ${u.role==='viewer'?'selected':''}>viewer</option>
-          <option ${u.role==='editor'?'selected':''}>editor</option>
-          <option ${u.role==='admin'?'selected':''}>admin</option>
-        </select></div>
-        <div class="ugc"><span class="ustbdg ${sc}">${(u.status||'?').toUpperCase()}</span></div>
-        <div class="ugc">
-          ${u.status==='pending'?`<button class="aab aab-a" onclick="setUst('${u.id}','active')">✅ Approve</button>`:''}
-          ${u.status==='active'?`<button class="aab aab-b" onclick="setUst('${u.id}','blocked')">🚫 Block</button>`:''}
-          ${u.status==='blocked'?`<button class="aab aab-u" onclick="setUst('${u.id}','active')">✅ Aktifkan</button>`:''}
-        </div>`;
+    allUsers=snap.docs.map(d=>({id:d.id,...d.data()}));
+    const total=allUsers.length;
+    const pending=allUsers.filter(u=>u.status==='pending').length;
+    cnt.innerHTML=`Daftar User <span>${total} user terdaftar</span>${pending?` · <span style="color:var(--amber)">${pending} pending</span>`:''}`;
+    if(!total){list.innerHTML='<p style="color:var(--muted);font-size:12px">Belum ada user.</p>';return;}
+    let html='';
+    allUsers.forEach(u=>{
+      const isMe=u.uid===curUser?.uid;
+      const rc=u.role==='admin'?'umr-admin':u.role==='editor'?'umr-editor':'umr-viewer';
+      const sc=u.status==='active'?'umst-a':u.status==='blocked'?'umst-b':'umst-p';
+      const stTxt=u.status==='active'?'Aktif':u.status==='blocked'?'Blocked':'Pending';
+      html+=`<div class="umrow">
+        <div class="umav" style="background:${avColor(u.fullName)}">${avInit(u.fullName)}</div>
+        <div class="uminfo">
+          <div class="umname">${u.fullName||'–'}</div>
+          <div class="umemail">${u.email}</div>
+        </div>
+        <div><span class="umrole ${rc}">${u.role||'viewer'}</span><span class="umst ${isMe?'umst-you':sc}">${isMe?'Anda':stTxt}</span></div>
+        <div class="umact">
+          ${!isMe?`<button class="umbtn umbtn-ed" onclick="openEditUser('${u.id}')">✏️ Edit</button>`:''}
+          ${(!isMe&&u.status==='pending')?`<button class="umbtn" style="color:#16A34A;border-color:#86EFAC;background:#DCFCE7" onclick="setUst('${u.id}','active')">✅ Approve</button>`:''}
+        </div>
+      </div>`;
     });
-    html+='</div>';wrap.innerHTML=html;
+    list.innerHTML=html;
   });
+};
+window.openEditUser=function(id){
+  const u=allUsers.find(x=>x.id===id);if(!u)return;
+  editUid=id;
+  $('umEditRole').value=u.role||'viewer';
+  $('umEditStatus').value=u.status||'pending';
+  $('umEdit').classList.add('on');
+};
+window.saveEditUser=async function(){
+  if(!editUid)return;
+  const role=$('umEditRole').value,status=$('umEditStatus').value;
+  try{
+    await updateDoc(doc(db,'icu_users',editUid),{role,status});
+    $('umEdit').classList.remove('on');
+    toast('User diperbarui','✅');
+  }catch(e){toast('Gagal: '+e.message,'❌');}
 };
 window.setUst=async function(id,status){await updateDoc(doc(db,'icu_users',id),{status});toast('User diperbarui','✅');};
 window.setRole=async function(id,role){await updateDoc(doc(db,'icu_users',id),{role});toast('Role diperbarui','⚙️');};
@@ -692,7 +805,7 @@ window.switchTab=function(t){
   ['t0','t1','t2'].forEach(id=>$(id).classList.remove('on'));
   const m={main:'t0',hist:'t1',admin:'t2'};if(m[t])$(m[t]).classList.add('on');
   if(t==='hist')startSnapSync();
-  if(t==='admin'&&uProf?.role==='admin')loadUsers();
+  // admin loaded on demand via openUserModal
 };
 
 // ── DURATION ─────────────────────────────────────
