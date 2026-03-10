@@ -633,10 +633,13 @@ async function routeUser(user){
     $('siErr').classList.add('on');
     $('loginPage').style.display='flex';return;
   }
-  $('uName').textContent=uProf.fullName||user.email;
-  $('uRole').textContent=uProf.role||'viewer';
-  if(uProf.role==='admin')document.body.classList.add('isadm');
-  if(uProf.role==='viewer')document.body.classList.add('isview');
+  // Support both 'fullName' and 'full name' field variants
+  const displayName=uProf.fullName||uProf['full name']||user.email;
+  const displayRole=uProf.role||'viewer';
+  $('uName').textContent=displayName;
+  $('uRole').textContent=displayRole;
+  if(displayRole==='admin')document.body.classList.add('isadm');
+  if(displayRole==='viewer')document.body.classList.add('isview');
   $('loginPage').style.display='none';
   $('pendingPage').style.display='none';
   $('appPage').style.display='block';
@@ -833,26 +836,27 @@ function renderDash(){
   const d=tData,c=fn=>d.filter(fn).length;
   const top=[...d].filter(x=>x.icuStart).sort((a,b)=>durMs(b.icuStart)-durMs(a.icuStart)).slice(0,3);
   $('dashSec').innerHTML=`
-    <div class="dglbl">Overview — Semua Disiplin</div>
+    <div class="dglbl">Overview</div>
     <div class="drow">
-      <div class="dc c-tot"><div class="dcv">${d.length}</div><div class="dcl">Total Equipment</div><div class="dcs">Terdaftar</div><div class="dcb"></div></div><div class="dc" style="border-top-color:#C0392B"><div class="dcv" style="color:#C0392B">${c(r=>r.isICU===true)}</div><div class="dcl" style="color:#C0392B">🔴 ICU</div><div class="dcs">Monitoring Khusus</div><div class="dcb" style="background:#C0392B"></div></div>
-      <div class="dc" style="border-top-color:#7C3AED"><div class="dcv" style="color:#7C3AED">${c(r=>r.disiplin==='Static')}</div><div class="dcl" style="color:#7C3AED">Static</div><div class="dcb" style="background:#7C3AED"></div></div>
-      <div class="dc" style="border-top-color:#1D4ED8"><div class="dcv" style="color:#1D4ED8">${c(r=>r.disiplin==='Rotating')}</div><div class="dcl" style="color:#1D4ED8">Rotating</div><div class="dcb" style="background:#1D4ED8"></div></div>
-      <div class="dc" style="border-top-color:#D97706"><div class="dcv" style="color:#D97706">${c(r=>r.disiplin==='Instrument')}</div><div class="dcl" style="color:#D97706">Instrument</div><div class="dcb" style="background:#D97706"></div></div>
-      <div class="dc" style="border-top-color:#16A34A"><div class="dcv" style="color:#16A34A">${c(r=>r.disiplin==='Electrical')}</div><div class="dcl" style="color:#16A34A">Electrical</div><div class="dcb" style="background:#16A34A"></div></div>
-      <div class="dc c-hi"><div class="dcv">${c(r=>r.risk==='High')}</div><div class="dcl">High Risk</div><div class="dcb"></div></div>
-      <div class="dc c-me"><div class="dcv">${c(r=>r.risk==='Medium')}</div><div class="dcl">Medium</div><div class="dcb"></div></div>
-      <div class="dc c-lo"><div class="dcv">${c(r=>r.risk==='Low')}</div><div class="dcl">Low Risk</div><div class="dcb"></div></div>
+      <div class="dc c-tot"><div class="dcv">${d.length}</div><div class="dcl">Total Equipment</div><div class="dcs">Semua Disiplin</div><div class="dcb"></div></div>
+      <div class="dc" style="border-top-color:#C0392B"><div class="dcv" style="color:#C0392B">${c(r=>r.isICU===true)}</div><div class="dcl" style="color:#C0392B">ICU</div><div class="dcs">Monitoring Khusus</div><div class="dcb" style="background:#C0392B"></div></div>
+      <div class="dc" style="border-top-color:#7C3AED"><div class="dcv" style="color:#7C3AED">${c(r=>r.disiplin==='Static')}</div><div class="dcl" style="color:#7C3AED">Static</div><div class="dcs">Equipment</div><div class="dcb" style="background:#7C3AED"></div></div>
+      <div class="dc" style="border-top-color:#1D4ED8"><div class="dcv" style="color:#1D4ED8">${c(r=>r.disiplin==='Rotating')}</div><div class="dcl" style="color:#1D4ED8">Rotating</div><div class="dcs">Equipment</div><div class="dcb" style="background:#1D4ED8"></div></div>
+      <div class="dc" style="border-top-color:#D97706"><div class="dcv" style="color:#D97706">${c(r=>r.disiplin==='Instrument')}</div><div class="dcl" style="color:#D97706">Instrument</div><div class="dcs">Equipment</div><div class="dcb" style="background:#D97706"></div></div>
+      <div class="dc" style="border-top-color:#16A34A"><div class="dcv" style="color:#16A34A">${c(r=>r.disiplin==='Electrical')}</div><div class="dcl" style="color:#16A34A">Electrical</div><div class="dcs">Equipment</div><div class="dcb" style="background:#16A34A"></div></div>
+      <div class="dc c-hi"><div class="dcv">${c(r=>r.risk==='High')}</div><div class="dcl">High Risk</div><div class="dcs">Prioritas</div><div class="dcb"></div></div>
+      <div class="dc c-me"><div class="dcv">${c(r=>r.risk==='Medium')}</div><div class="dcl">Medium</div><div class="dcs">Perhatian</div><div class="dcb"></div></div>
+      <div class="dc c-lo"><div class="dcv">${c(r=>r.risk==='Low')}</div><div class="dcl">Low Risk</div><div class="dcs">Normal</div><div class="dcb"></div></div>
     </div>
-    <div class="dglbl">Status &amp; Progress</div>
+    <div class="dglbl">Status & Progress</div>
     <div class="drow">
-      <div class="dc c-da"><div class="dcv">${c(r=>r.status==='danger')}</div><div class="dcl">Danger</div><div class="dcs">Status</div><div class="dcb"></div></div>
-      <div class="dc c-al"><div class="dcv">${c(r=>r.status==='alert')}</div><div class="dcl">Alert</div><div class="dcs">Status</div><div class="dcb"></div></div>
-      <div class="dc c-go"><div class="dcv">${c(r=>r.status==='good')}</div><div class="dcl">Good</div><div class="dcs">Status</div><div class="dcb"></div></div>
-      <div class="dc c-de"><div class="dcv">${c(r=>r.progress==='delay')}</div><div class="dcl">Delay</div><div class="dcs">Progress</div><div class="dcb"></div></div>
-      <div class="dc c-ns"><div class="dcv">${c(r=>r.progress==='need-support')}</div><div class="dcl">Need Support</div><div class="dcs">Progress</div><div class="dcb"></div></div>
-      <div class="dc c-ot"><div class="dcv">${c(r=>r.progress==='on-track')}</div><div class="dcl">On Track</div><div class="dcs">Progress</div><div class="dcb"></div></div>
-      <div class="dc c-dn"><div class="dcv">${c(r=>r.progress==='done')}</div><div class="dcl">Done</div><div class="dcs">Progress</div><div class="dcb"></div></div>
+      <div class="dc" style="border-top-color:#DC2626"><div class="dcv" style="color:#DC2626">${c(r=>r.status==='danger')}</div><div class="dcl" style="color:#DC2626">Danger</div><div class="dcs">Status</div><div class="dcb" style="background:#DC2626"></div></div>
+      <div class="dc" style="border-top-color:#F59E0B"><div class="dcv" style="color:#F59E0B">${c(r=>r.status==='alert')}</div><div class="dcl" style="color:#F59E0B">Alert</div><div class="dcs">Status</div><div class="dcb" style="background:#F59E0B"></div></div>
+      <div class="dc" style="border-top-color:#16A34A"><div class="dcv" style="color:#16A34A">${c(r=>r.status==='good')}</div><div class="dcl" style="color:#16A34A">Good</div><div class="dcs">Status</div><div class="dcb" style="background:#16A34A"></div></div>
+      <div class="dc" style="border-top-color:#DC2626"><div class="dcv" style="color:#DC2626">${c(r=>r.progress==='delay')}</div><div class="dcl" style="color:#DC2626">Delay</div><div class="dcs">Progress</div><div class="dcb" style="background:#DC2626"></div></div>
+      <div class="dc" style="border-top-color:#F59E0B"><div class="dcv" style="color:#F59E0B">${c(r=>r.progress==='need-support')}</div><div class="dcl" style="color:#F59E0B">Need Support</div><div class="dcs">Progress</div><div class="dcb" style="background:#F59E0B"></div></div>
+      <div class="dc" style="border-top-color:#16A34A"><div class="dcv" style="color:#16A34A">${c(r=>r.progress==='on-track')}</div><div class="dcl" style="color:#16A34A">On Track</div><div class="dcs">Progress</div><div class="dcb" style="background:#16A34A"></div></div>
+      <div class="dc" style="border-top-color:#1D4ED8"><div class="dcv" style="color:#1D4ED8">${c(r=>r.progress==='done')}</div><div class="dcl" style="color:#1D4ED8">Done</div><div class="dcs">Progress</div><div class="dcb" style="background:#1D4ED8"></div></div>
     </div>
     <div class="dglbl">Durasi Monitor</div>
     <div class="drow">
