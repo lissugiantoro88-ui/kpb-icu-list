@@ -79,7 +79,6 @@ body{font-family:'Outfit',sans-serif;background:#0D1B2A;color:var(--text);min-he
 .tabbt:hover{color:rgba(255,255,255,.85)}
 .tabbt.on{color:#fff;border-bottom-color:var(--red)}
 .tabbt.adm{display:none}
-body.isadm .tabbt.adm{display:flex}
 .isview .ed{pointer-events:none}
 .wrap{max-width:1580px;margin:0 auto;padding:18px 18px 40px}
 /* TITLE BAR */
@@ -93,7 +92,7 @@ body.isadm .tabbt.adm{display:flex}
 @keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
 /* DASHBOARD */
 .dsec{margin-bottom:14px}
-.dglbl{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:rgba(255,255,255,.4);margin-bottom:6px;padding-left:2px}
+.dglbl{font-size:10.5px;font-weight:800;text-transform:uppercase;letter-spacing:.1em;color:#1E293B;margin:18px 0 10px;padding:7px 14px;background:#F8FAFC;border-left:4px solid #C0392B;border-radius:0 6px 6px 0;display:flex;align-items:center;gap:6px}
 .drow{display:flex;gap:8px;flex-wrap:nowrap;margin-bottom:8px;overflow-x:auto;padding-bottom:2px}
 .dc{background:#fff;border-radius:10px;padding:11px 12px 9px;display:flex;flex-direction:column;align-items:center;gap:2px;border-top:3px solid transparent;box-shadow:var(--sh);border-left:1px solid var(--border);border-right:1px solid var(--border);border-bottom:1px solid var(--border);min-width:90px;flex:1;transition:transform .15s,box-shadow .15s}
 .dc:hover{transform:translateY(-2px);box-shadow:var(--shl)}
@@ -137,9 +136,14 @@ body.isadm .tabbt.adm{display:flex}
 .sf option{background:var(--navy)}
 .btnadd{background:#16A34A;color:#fff;border:none;padding:6px 12px;border-radius:7px;font-size:12px;font-weight:600;cursor:pointer;font-family:'Outfit',sans-serif;transition:all .15s}
 /* Role-based visibility */
-body:not(.isadm):not(.iseditor) .btnadd{display:none!important}
-body:not(.isadm) .tabbt.adm{display:none!important}
+
 .btnadd:hover{background:#15803D}
+/* Role visibility - CSS only, no JS needed */
+.tabbt.adm{display:none}
+body.isadm .tabbt.adm{display:flex!important}
+body.isview .btnadd{display:none!important}
+body.isadm .btnadd{display:inline-flex!important}
+body.iseditor .btnadd{display:inline-flex!important}
 body.isview .btndel{display:none!important}
 body.isview .ed{cursor:default;pointer-events:none}
 body.isview .rb,body.isview .sq,body.isview .pd,body.isview .db{cursor:default;pointer-events:none}
@@ -308,7 +312,7 @@ tbody td:last-child{border-right:none}
   <div class="lcard">
     <div class="lbrand">
       <div class="licon">EHM</div>
-      <div><h2>Equipment Health Monitoring</h2><p>Technical Support — PT KPB</p></div>
+      <div><h2>Equipment Health Monitoring</h2></div>
     </div>
     <div class="ltabs">
       <button class="ltab on" id="tabSI" onclick="showLTab('si')">Sign In</button>
@@ -335,7 +339,7 @@ tbody td:last-child{border-right:none}
       <button class="lbtn" id="raBtn" onclick="doRegister()">Kirim Permintaan Akses</button>
       <p class="lnote">Akun aktif setelah diapprove Admin</p>
     </div>
-    <div class="lfooter"><p>Developed by <strong>Technical Support Team</strong></p><p style="font-size:10px;color:#B0BAC8;margin-top:2px">PT Kilang Pertamina Balikpapan</p></div>
+    <div class="lfooter"><p>Developed by <strong>Technical Support Team</strong></p><p style="font-size:10px;color:#B0BAC8;margin-top:2px"></div>
   </div>
 </div>
 
@@ -370,7 +374,7 @@ tbody td:last-child{border-right:none}
   </div>
   <!-- MODALS -->
   <div class="mbg" id="mDate"><div class="mbox">
-    <h3>📅 Tanggal Mulai ICU</h3>
+    <h3>📅 Tanggal Mulai Monitor</h3>
     <label>Monitor sejak:</label><input type="date" id="mDateVal">
     <div class="mrow"><button class="bm bmc" onclick="cm('mDate')">Batal</button><button class="bm bms" onclick="saveDM()">Simpan</button></div>
   </div></div>
@@ -387,9 +391,8 @@ tbody td:last-child{border-right:none}
         <span class="tl">Judul:</span>
         <input class="ti" id="slideTitle" value="Equipment Health Monitoring – Q1 2026">
         <span class="tl">Tgl:</span><input type="date" class="di" id="slideDate">
-        <span class="tl">Unit:</span>
-        <input class="ti" id="slideUnit" value="PT Kilang Pertamina Balikpapan" style="max-width:250px">
-        <div class="onbar"><div class="ondot"></div><span id="onlineCnt">0</span> online</div>
+        <input type="hidden" id="slideUnit" value="PT Kilang Pertamina Balikpapan">
+        <div class="onbar"><span id="onlineCnt" style="font-size:11px;font-weight:600;color:#16A34A">● 0 online</span></div>
       </div>
       <div class="dsec" id="dashSec"></div>
       <div class="legstrip">
@@ -418,7 +421,7 @@ tbody td:last-child{border-right:none}
       </div>
       <div class="twrap">
         <div class="tbar2">
-          <span class="ttitle">📋 Daftar ICU Equipment <span class="sbadge sb-ok" id="syncBdg">● Live</span></span>
+          <span class="ttitle">📋 Equipment Highlight List <span class="sbadge sb-ok" id="syncBdg">● Live</span></span>
           <div class="tbr">
             <div class="sbox"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,.5)" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg><input id="srch" placeholder="Cari unit, tag…" oninput="applyF()"></div>
             <select class="sf" id="fD" onchange="applyF()"><option value="">Semua Disiplin</option><option>Static</option><option>Rotating</option><option>Instrument</option><option>Electrical</option></select>
@@ -488,14 +491,17 @@ tbody td:last-child{border-right:none}
 
     <!-- ADMIN PANEL -->
     <div id="pAdmin" class="panel">
-      <div class="admbox">
-        <div class="admhdr">
-          <h3>👥 Manajemen User</h3>
-          <button class="btnsm" style="background:rgba(255,255,255,.1);color:#fff;border-color:rgba(255,255,255,.2)" onclick="openUserModal()">👥 Kelola User</button>
+      <div class="admbox" style="background:#fff;border-radius:12px;overflow:hidden">
+        <div class="admhdr" style="background:#1E293B;padding:14px 18px;display:flex;align-items:center;justify-content:space-between">
+          <h3 style="color:#fff;font-size:14px;font-weight:700;margin:0">👥 User Management</h3>
+          <button class="btnsm" style="background:rgba(255,255,255,.1);color:#fff;border-color:rgba(255,255,255,.2)" onclick="loadUsers()">🔄 Refresh</button>
         </div>
-        <div style="padding:32px;text-align:center;color:rgba(255,255,255,.4)">
-          <div style="font-size:42px;margin-bottom:10px">👥</div>
-          <p style="font-size:13px">Klik <b style="color:#fff">Kelola User</b> untuk manage akun tim</p>
+        <div style="padding:6px 0">
+          <div style="padding:10px 16px;background:#EFF6FF;border-bottom:1px solid #DBEAFE;font-size:11.5px;color:#1D4ED8">
+            ℹ️ User baru dapat mendaftar melalui tombol <b>"Request Access"</b> di halaman login.
+          </div>
+          <div id="umCount" style="padding:8px 16px;font-size:11px;font-weight:600;color:#64748B;border-bottom:1px solid #F1F5F9"></div>
+          <div id="umList" style="padding:8px 10px"></div>
         </div>
       </div>
     </div>
@@ -587,6 +593,7 @@ function hide(id){const el=$(id);if(el)el.classList.add('gone');}
 function toast(msg,icon='✅'){$('tMsg').textContent=msg;$('tIcon').textContent=icon;const t=$('toast');t.classList.add('on');setTimeout(()=>t.classList.remove('on'),3200);}
 function om(id){$(id).classList.add('on');}
 function cm(id){$(id).classList.remove('on');}
+window.cm=cm;window.om=om;
 function setSB(type,txt){const b=$('syncBdg');b.textContent=txt;b.className='sbadge '+(type==='ok'?'sb-ok':type==='ing'?'sb-ing':'sb-err');}
 
 // ── AUTH ─────────────────────────────────────────
@@ -641,21 +648,9 @@ async function routeUser(user){
   const displayRole=(uProf.role||'viewer').toLowerCase().trim();
   $('uName').textContent=displayName;
   $('uRole').textContent=displayRole.toUpperCase();
-  // Remove old classes first
+  // Set role class on body
   document.body.classList.remove('isadm','isview','iseditor');
-  if(displayRole==='admin'){
-    document.body.classList.add('isadm');
-    // Force show admin tab and add button directly
-    const adminTab=document.getElementById('t2');
-    if(adminTab)adminTab.style.display='flex';
-    document.querySelectorAll('.btnadd').forEach(b=>b.style.display='inline-flex');
-  } else if(displayRole==='editor'){
-    document.body.classList.add('iseditor');
-    document.querySelectorAll('.btnadd').forEach(b=>b.style.display='inline-flex');
-  } else {
-    document.body.classList.add('isview');
-    document.querySelectorAll('.btnadd').forEach(b=>b.style.display='none');
-  }
+  document.body.classList.add(displayRole==='admin'?'isadm':displayRole==='editor'?'iseditor':'isview');
   $('loginPage').style.display='none';
   $('pendingPage').style.display='none';
   $('appPage').style.display='block';
@@ -694,14 +689,27 @@ async function delEquip(id){
 
 // ── ONLINE PRESENCE ──────────────────────────────
 function startOnline(){
-  const uid=curUser.uid,name=uProf?.fullName||curUser.email;
+  const uid=curUser.uid,name=uProf?.fullName||uProf?.fullname||curUser.email;
   const pRef=ref(rtdb,'online/'+uid);
   const connRef=ref(rtdb,'.info/connected');
   onValue(connRef,snap=>{
-    if(snap.val()){onDisconnect(pRef).remove();set(pRef,{name,ts:rtTS()});}
+    if(snap.val()===true){
+      onDisconnect(pRef).remove();
+      set(pRef,{name,ts:rtTS()});
+    } else {
+      // remove on disconnect
+    }
   });
+  // Always listen to online count
   onValue(ref(rtdb,'online'),snap=>{
-    $('onlineCnt').textContent=snap.exists()?Object.keys(snap.val()).length:0;
+    try{
+      const cnt=snap.exists()?Object.keys(snap.val()).length:0;
+      $('onlineCnt').textContent='● '+cnt+' online';
+      $('onlineCnt').style.color=cnt>0?'#16A34A':'#64748B';
+    }catch(e){$('onlineCnt').textContent='● 1 online';}
+  },err=>{
+    // RTDB read failed - show static
+    $('onlineCnt').textContent='● online';
   });
 }
 
@@ -753,11 +761,65 @@ window.exportSnapPPT=function(id){
 };
 window.exportSnapPDF=function(id){
   const s=snaps.find(x=>x.id===id);if(!s)return;
-  const origD=JSON.parse(JSON.stringify(tData)),origT=$('slideTitle').value;
-  tData=JSON.parse(s.dataJson);$('slideTitle').value=s.title;
-  applyF();switchTab('main');
-  setTimeout(()=>{window.print();setTimeout(()=>{tData=origD;$('slideTitle').value=origT;applyF();switchTab('hist');},600);},400);
+  const data=JSON.parse(s.dataJson||'[]');
+  const dt=s.createdAt?.toDate?s.createdAt.toDate().toLocaleDateString('id-ID',{day:'numeric',month:'long',year:'numeric'}):'-';
+  buildPDF(data,s.title,dt);
 };
+function buildPDF(data,title,dateDisp){
+  // Open new window with full table HTML then print
+  const riskBadge=r=>{const c=r==='High'?'#FEE2E2,#C0392B':r==='Medium'?'#FEF3C7,#D97706':'#DCFCE7,#16A34A';const [bg,fg]=c.split(',');return `<span style="background:${bg};color:${fg};padding:2px 6px;border-radius:4px;font-size:9px;font-weight:700">${r}</span>`;};
+  const stDot=s=>{const c=s==='danger'?'#DC2626':s==='alert'?'#F59E0B':'#16A34A';return `<span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:${c}"></span>`;};
+  const prDot=p=>{const c=p==='delay'?'#DC2626':p==='need-support'?'#F59E0B':p==='done'?'#1D4ED8':'#16A34A';return `<span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:${c}"></span>`;};
+  const rows=data.map((r,i)=>`<tr style="background:${i%2?'#F8FAFC':'#fff'}">
+    <td style="text-align:center;font-weight:700;font-size:10px">${r.unit||''}</td>
+    <td style="font-size:9px;font-weight:600;color:#7C3AED">${r.disiplin||''}</td>
+    <td style="font-size:10px;font-weight:700">${r.tag||''}</td>
+    <td style="text-align:center">${riskBadge(r.risk||'')}</td>
+    <td style="font-size:9px">${r.issue||''}<br>${r.condition?'<i style="color:#94A3B8">'+r.condition+'</i>':''}</td>
+    <td style="font-size:9px">${r.counter||''}<br>${r.solution?'<i style="color:#94A3B8">'+r.solution+'</i>':''}</td>
+    <td style="text-align:center">${stDot(r.status)}</td>
+    <td style="font-size:9px">${r.progressLW||'–'}</td>
+    <td style="font-size:9px">${r.progressTW||'–'}</td>
+    <td style="text-align:center">${prDot(r.progress)}</td>
+    <td style="font-size:9px;text-align:center">${r.pic||'–'}</td>
+    <td style="font-size:9px;text-align:center">${r.targetFinish||'–'}</td>
+    <td style="font-size:9px;text-align:center">${durTxt(r.icuStart)}</td>
+  </tr>`).join('');
+  const html=`<!DOCTYPE html><html><head><meta charset="UTF-8">
+  <title>${title}</title>
+  <style>
+    @page{size:A4 landscape;margin:10mm}
+    body{font-family:Calibri,Arial,sans-serif;font-size:10px;color:#1E293B}
+    h1{font-size:16px;color:#1B2A3B;margin:0 0 2px}
+    p{margin:0 0 8px;font-size:10px;color:#64748B}
+    table{width:100%;border-collapse:collapse;font-size:9px}
+    th{background:#1B2A3B;color:#fff;padding:5px 4px;font-size:8.5px;text-transform:uppercase;letter-spacing:.04em}
+    td{padding:4px;border-bottom:1px solid #E2E8F0;vertical-align:top}
+    .hdr{display:flex;justify-content:space-between;align-items:flex-end;margin-bottom:10px;padding-bottom:8px;border-bottom:3px solid #C0392B}
+    .ftr{margin-top:8px;font-size:8px;color:#94A3B8;text-align:right;border-top:1px solid #E2E8F0;padding-top:6px}
+    @media print{.hdr,.ftr{page-break-inside:avoid}}
+  </style></head><body>
+  <div class="hdr">
+    <div><h1>${title}</h1><p>Equipment Health Monitoring – PT Kilang Pertamina Balikpapan</p></div>
+    <div style="text-align:right;font-size:10px;color:#64748B">${dateDisp}<br><b>${data.length} Equipment</b></div>
+  </div>
+  <table>
+    <thead><tr>
+      <th style="width:5%">UNIT</th><th style="width:6%">DISIPLIN</th><th style="width:9%">TAG</th>
+      <th style="width:5%">RISK</th><th style="width:13%">ISSUE & CONDITION</th>
+      <th style="width:13%">COUNTER MEASURE</th><th style="width:3%">ST</th>
+      <th style="width:10%">PROG LW</th><th style="width:10%">PROG TW</th>
+      <th style="width:3%">TL</th><th style="width:7%">PIC</th>
+      <th style="width:7%">TARGET</th><th style="width:6%">DURASI</th>
+    </tr></thead>
+    <tbody>${rows}</tbody>
+  </table>
+  <div class="ftr">Technical Support – PT Kilang Pertamina Balikpapan | ${dateDisp}</div>
+  <script>window.onload=()=>{window.print();window.onafterprint=()=>window.close();}<\/script>
+  </body></html>`;
+  const w=window.open('','_blank','width=1200,height=800');
+  if(w){w.document.write(html);w.document.close();}
+}
 
 // ── ADMIN ────────────────────────────────────────
 // Avatar color palette
@@ -832,7 +894,7 @@ window.switchTab=function(t){
   ['t0','t1','t2'].forEach(id=>$(id).classList.remove('on'));
   const m={main:'t0',hist:'t1',admin:'t2'};if(m[t])$(m[t]).classList.add('on');
   if(t==='hist')startSnapSync();
-  // admin loaded on demand via openUserModal
+  if(t==='admin')loadUsers();
 };
 
 // ── DURATION ─────────────────────────────────────
@@ -850,40 +912,45 @@ function durCls(s){const ms=durMs(s);if(!ms)return 'd-none';const d=Math.floor(m
 // ── DASHBOARD ─────────────────────────────────────
 function renderDash(){
   const d=tData,c=fn=>d.filter(fn).length;
-  const top=[...d].filter(x=>x.icuStart).sort((a,b)=>durMs(b.icuStart)-durMs(a.icuStart)).slice(0,3);
-  $('dashSec').innerHTML=`
-    <div class="dglbl">Overview</div>
-    <div class="drow">
-      <div class="dc c-tot"><div class="dcv">${d.length}</div><div class="dcl">Total Equipment</div><div class="dcs">Semua Disiplin</div><div class="dcb"></div></div>
-      <div class="dc" style="border-top-color:#C0392B"><div class="dcv" style="color:#C0392B">${c(r=>r.isICU===true)}</div><div class="dcl" style="color:#C0392B">ICU</div><div class="dcs">Monitoring Khusus</div><div class="dcb" style="background:#C0392B"></div></div>
-      <div class="dc" style="border-top-color:#7C3AED"><div class="dcv" style="color:#7C3AED">${c(r=>r.disiplin==='Static')}</div><div class="dcl" style="color:#7C3AED">Static</div><div class="dcs">Equipment</div><div class="dcb" style="background:#7C3AED"></div></div>
-      <div class="dc" style="border-top-color:#1D4ED8"><div class="dcv" style="color:#1D4ED8">${c(r=>r.disiplin==='Rotating')}</div><div class="dcl" style="color:#1D4ED8">Rotating</div><div class="dcs">Equipment</div><div class="dcb" style="background:#1D4ED8"></div></div>
-      <div class="dc" style="border-top-color:#D97706"><div class="dcv" style="color:#D97706">${c(r=>r.disiplin==='Instrument')}</div><div class="dcl" style="color:#D97706">Instrument</div><div class="dcs">Equipment</div><div class="dcb" style="background:#D97706"></div></div>
-      <div class="dc" style="border-top-color:#16A34A"><div class="dcv" style="color:#16A34A">${c(r=>r.disiplin==='Electrical')}</div><div class="dcl" style="color:#16A34A">Electrical</div><div class="dcs">Equipment</div><div class="dcb" style="background:#16A34A"></div></div>
-      <div class="dc c-hi"><div class="dcv">${c(r=>r.risk==='High')}</div><div class="dcl">High Risk</div><div class="dcs">Prioritas</div><div class="dcb"></div></div>
-      <div class="dc c-me"><div class="dcv">${c(r=>r.risk==='Medium')}</div><div class="dcl">Medium</div><div class="dcs">Perhatian</div><div class="dcb"></div></div>
-      <div class="dc c-lo"><div class="dcv">${c(r=>r.risk==='Low')}</div><div class="dcl">Low Risk</div><div class="dcs">Normal</div><div class="dcb"></div></div>
-    </div>
-    <div class="dglbl">Status & Progress</div>
-    <div class="drow">
-      <div class="dc" style="border-top-color:#DC2626"><div class="dcv" style="color:#DC2626">${c(r=>r.status==='danger')}</div><div class="dcl" style="color:#DC2626">Danger</div><div class="dcs">Status</div><div class="dcb" style="background:#DC2626"></div></div>
-      <div class="dc" style="border-top-color:#F59E0B"><div class="dcv" style="color:#F59E0B">${c(r=>r.status==='alert')}</div><div class="dcl" style="color:#F59E0B">Alert</div><div class="dcs">Status</div><div class="dcb" style="background:#F59E0B"></div></div>
-      <div class="dc" style="border-top-color:#16A34A"><div class="dcv" style="color:#16A34A">${c(r=>r.status==='good')}</div><div class="dcl" style="color:#16A34A">Good</div><div class="dcs">Status</div><div class="dcb" style="background:#16A34A"></div></div>
-      <div class="dc" style="border-top-color:#DC2626"><div class="dcv" style="color:#DC2626">${c(r=>r.progress==='delay')}</div><div class="dcl" style="color:#DC2626">Delay</div><div class="dcs">Progress</div><div class="dcb" style="background:#DC2626"></div></div>
-      <div class="dc" style="border-top-color:#F59E0B"><div class="dcv" style="color:#F59E0B">${c(r=>r.progress==='need-support')}</div><div class="dcl" style="color:#F59E0B">Need Support</div><div class="dcs">Progress</div><div class="dcb" style="background:#F59E0B"></div></div>
-      <div class="dc" style="border-top-color:#16A34A"><div class="dcv" style="color:#16A34A">${c(r=>r.progress==='on-track')}</div><div class="dcl" style="color:#16A34A">On Track</div><div class="dcs">Progress</div><div class="dcb" style="background:#16A34A"></div></div>
-      <div class="dc" style="border-top-color:#1D4ED8"><div class="dcv" style="color:#1D4ED8">${c(r=>r.progress==='done')}</div><div class="dcl" style="color:#1D4ED8">Done</div><div class="dcs">Progress</div><div class="dcb" style="background:#1D4ED8"></div></div>
-    </div>
-    <div class="dglbl">Durasi Monitor</div>
-    <div class="drow">
-      <div class="dc c-hi"><div class="dcv">${c(r=>durCls(r.icuStart)==='d-crit')}</div><div class="dcl">&gt;6 Bulan</div><div class="dcs">Kritis</div><div class="dcb"></div></div>
-      <div class="dc c-me"><div class="dcv">${c(r=>durCls(r.icuStart)==='d-warn')}</div><div class="dcl">1–6 Bulan</div><div class="dcs">Perhatian</div><div class="dcb"></div></div>
-      <div class="dc c-lo"><div class="dcv">${c(r=>durCls(r.icuStart)==='d-ok')}</div><div class="dcl">&lt;30 Hari</div><div class="dcs">Normal</div><div class="dcb"></div></div>
-      <div class="dc c-tot" style="flex:3;min-width:180px;padding:9px 11px;align-items:flex-start">
-        ${top.map(r=>`<div style="display:flex;justify-content:space-between;align-items:center;padding:3px 0;border-bottom:1px solid #F1F5F9;width:100%"><span style="font-size:9.5px;font-weight:600">${r.unit} – ${(r.tag||'').slice(0,14)}</span><span class="db ${durCls(r.icuStart)}">${durTxt(r.icuStart)}</span></div>`).join('')}
-        <div class="dcl" style="margin-top:5px;width:100%;text-align:center">Top Durasi Terlama</div>
-      </div>
-    </div>`;
+  const top=[...d].filter(x=>x.icuStart).sort((a,b)=>durMs(b.icuStart)-durMs(a.icuStart)).slice(0,5);
+  const card=(val,lbl,sub,clr,bg='#fff')=>`<div style="background:${bg};border-radius:10px;padding:14px 16px;min-width:90px;flex:1;box-shadow:0 1px 4px rgba(0,0,0,.07);border-bottom:3px solid ${clr};text-align:center"><div style="font-size:26px;font-weight:800;color:${clr};line-height:1.1">${val}</div><div style="font-size:11px;font-weight:700;color:#1E293B;margin-top:4px">${lbl}</div><div style="font-size:9.5px;color:#94A3B8;margin-top:2px">${sub}</div></div>`;
+  const sec=(icon,title,clr,content)=>`<div style="background:#fff;border-radius:14px;padding:16px 18px;margin-bottom:14px;box-shadow:0 1px 6px rgba(0,0,0,.08)"><div style="display:flex;align-items:center;gap:8px;margin-bottom:14px;padding-bottom:10px;border-bottom:2px solid #F1F5F9"><span style="font-size:18px">${icon}</span><span style="font-size:12px;font-weight:800;text-transform:uppercase;letter-spacing:.08em;color:${clr}">${title}</span></div><div style="display:flex;flex-wrap:wrap;gap:10px">${content}</div></div>`;
+  
+  const overviewCards=
+    card(d.length,'Total Equipment','Semua Disiplin','#334155','#F8FAFC')+
+    card(c(r=>r.isICU===true),'ICU','Monitoring Khusus','#C0392B','#FFF5F5')+
+    card(c(r=>r.disiplin==='Static'),'Static','Equipment','#7C3AED','#FAF5FF')+
+    card(c(r=>r.disiplin==='Rotating'),'Rotating','Equipment','#1D4ED8','#EFF6FF')+
+    card(c(r=>r.disiplin==='Instrument'),'Instrument','Equipment','#D97706','#FFFBEB')+
+    card(c(r=>r.disiplin==='Electrical'),'Electrical','Equipment','#16A34A','#F0FDF4');
+
+  const riskCards=
+    card(c(r=>r.risk==='High'),'High Risk','Prioritas','#DC2626','#FEF2F2')+
+    card(c(r=>r.risk==='Medium'),'Medium Risk','Perhatian','#F59E0B','#FFFBEB')+
+    card(c(r=>r.risk==='Low'),'Low Risk','Normal','#16A34A','#F0FDF4');
+
+  const statusCards=
+    card(c(r=>r.status==='danger'),'Danger','Status','#DC2626','#FEF2F2')+
+    card(c(r=>r.status==='alert'),'Alert','Status','#F59E0B','#FFFBEB')+
+    card(c(r=>r.status==='good'),'Good','Status','#16A34A','#F0FDF4');
+
+  const progressCards=
+    card(c(r=>r.progress==='delay'),'Delay','Progress','#DC2626','#FEF2F2')+
+    card(c(r=>r.progress==='need-support'),'Need Support','Progress','#F59E0B','#FFFBEB')+
+    card(c(r=>r.progress==='on-track'),'On Track','Progress','#16A34A','#F0FDF4')+
+    card(c(r=>r.progress==='done'),'Done','Progress','#1D4ED8','#EFF6FF');
+
+  const durCards=
+    card(c(r=>durCls(r.icuStart)==='d-crit'),'>6 Bulan','Kritis','#DC2626','#FEF2F2')+
+    card(c(r=>durCls(r.icuStart)==='d-warn'),'1–6 Bulan','Perhatian','#F59E0B','#FFFBEB')+
+    card(c(r=>durCls(r.icuStart)==='d-ok'),'<30 Hari','Normal','#16A34A','#F0FDF4')+
+    `<div style="background:#F8FAFC;border-radius:10px;padding:12px 14px;flex:3;min-width:200px;box-shadow:0 1px 4px rgba(0,0,0,.06)"><div style="font-size:10px;font-weight:700;color:#64748B;text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px">⏰ Top Durasi Terlama</div>${top.map(r=>`<div style="display:flex;justify-content:space-between;align-items:center;padding:4px 0;border-bottom:1px solid #E2E8F0"><span style="font-size:10px;font-weight:600;color:#1E293B">${r.unit} – ${(r.tag||'').slice(0,16)}</span><span class="db ${durCls(r.icuStart)}" style="font-size:9px">${durTxt(r.icuStart)}</span></div>`).join('')}</div>`;
+
+  $('dashSec').innerHTML=
+    sec('📊','Overview Equipment','#1D4ED8', overviewCards)+
+    sec('⚠️','Risk Level','#DC2626', riskCards)+
+    sec('📈','Status & Progress','#7C3AED', statusCards+'<div style="width:100%;height:1px;background:#F1F5F9;margin:4px 0"></div>'+progressCards)+
+    sec('⏱️','Durasi Monitor','#D97706', durCards);
 }
 
 // ── FILTER / SORT / TABLE ────────────────────────
@@ -925,7 +992,10 @@ function renderT(){
       </td>
       <td style="text-align:center">
         ${canEdit
-          ? `<select style="font-size:9.5px;font-weight:600;padding:2px 4px;border-radius:6px;border:1px solid #CBD5E1;background:#F8FAFC;cursor:pointer;font-family:Outfit,sans-serif" onchange="updUnit(${idx},this.value)"><option value="315">315 – Fuel Oil & Gas System</option><option value="325">325 – Spent Caustic & Chemical</option><option value="331">331 – Steam & Power Generation</option><option value="332">332 – Cooling Water System</option><option value="334">334 – Waste Water Treatment</option><option value="335">335 – Air System</option><option value="337">337 – Sea Water Intake</option><option value="320">320 – Plant Feed & Product Tankage</option><option value="323">323 – New Product Jetty</option><option value="053">053 – RFCC Naphtha Hydrotreating</option><option value="054">054 – DHT Diesel Hydrotreating</option><option value="060">060 – SGCU</option><option value="064">064 – Saturated LPG Treating</option><option value="067">067 – Non-RFCC SWS</option><option value="068">068 – HMU Hydrogen</option><option value="079">079 – ARU II Amine Regen</option><option value="085">085 – DHT H2 Compressor</option><option value="169">169 – Sulfur Plant</option><option value="052">052 – RFCC Residued FCC</option><option value="059">059 – CCR Platforming</option><option value="062">062 – RFCC LPG Treating</option><option value="063">063 – Propylene Recovery</option><option value="065">065 – Alkylation</option><option value="066">066 – Wet Gas Sulfuric Acid</option><option value="069">069 – Amine Regeneration</option><option value="082">082 – Isomerization</option><option value="083">083 – DHT II</option><option value="084">084 – Naphtha HT II</option><option value="160">160 – Common Facilities NLP</option><option value="167">167 – RFCC SWS</option><option value="319">319 – Flare System</option><option value="custom">-- Custom --</option></select>`
+          ? `<select style="font-size:9.5px;font-weight:600;padding:2px 4px;border-radius:6px;border:1px solid #CBD5E1;background:#F8FAFC;cursor:pointer;font-family:Outfit,sans-serif" onchange="updUnit(${idx},this.value)"><option value="315">315 – Fuel Oil & Gas System</option><option value="325">325 – Spent Caustic & Chemical</option><option value="331">331 – Steam & Power Generation</option><option value="332">332 – Cooling Water System</option><option value="334">334 – Waste Water Treatment</option><option value="335">335 – Air System</option><option value="337">337 – Sea Water Intake</option><option value="320">320 – Plant Feed & Product Tankage</option><option value="323">323 – New Product Jetty</option><option value="053">053 – RFCC Naphtha Hydrotreating</option><option value="054">054 – DHT Diesel Hydrotreating</option><option value="060">060 – SGCU</option><option value="064">064 – Saturated LPG Treating</option><option value="067">067 – Non-RFCC SWS</option><option value="068">068 – HMU Hydrogen</option><option value="079">079 – ARU II Amine Regen</option><option value="085">085 – DHT H2 Compressor</option><option value="169">169 – Sulfur Plant</option><option value="052">052 – RFCC Residued FCC</option><option value="059">059 – CCR Platforming</option><option value="062">062 – RFCC LPG Treating</option><option value="063">063 – Propylene Recovery</option><option value="065">065 – Alkylation</option><option value="066">066 – Wet Gas Sulfuric Acid</option><option value="069">069 – Amine Regeneration</option><option value="082">082 – Isomerization</option><option value="083">083 – DHT II</option><option value="084">084 – Naphtha HT II</option><option value="160">160 – Common Facilities NLP</option><option value="167">167 – RFCC SWS</option><option value="319">319 – Flare System</option><option value="custom">-- Custom --</option></select>
+          <div id="ucust_${idx}" style="display:${!['315','325','331','332','334','335','337','320','323','053','054','060','064','067','068','079','085','169','052','059','062','063','065','066','069','082','083','084','160','167','319'].includes(row.unit)?'block':'none'};margin-top:3px">
+            <input id="ucustinp_${idx}" type="text" value="${!['315','325','331','332','334','335','337','320','323','053','054','060','064','067','068','079','085','169','052','059','062','063','065','066','069','082','083','084','160','167','319'].includes(row.unit)?row.unit:''}" placeholder="Ketik unit..." style="width:90%;font-size:9px;padding:2px 4px;border:1px solid #CBD5E1;border-radius:4px;font-family:Outfit,sans-serif" onblur="if(this.value.trim()){updSel(${idx},'unit',this.value.trim());}">
+          </div>`
           : `<b style="font-size:11px">${row.unit||''}</b>`
         }
       </td>
@@ -954,7 +1024,7 @@ function renderT(){
       <td><div class="ed" style="font-size:10px;font-weight:600;color:#1D4ED8" ${ce} onblur="upd(${idx},'pic',this.innerText)">${row.pic||''}</div></td>
       <td style="text-align:center">
         ${canEdit
-          ? `<input type="month" style="border:1px solid #CBD5E1;border-radius:5px;padding:2px 4px;font-size:9.5px;font-family:Outfit,sans-serif;width:100px" value="${row.targetFinish||''}" onchange="updSel(${idx},'targetFinish',this.value)">`
+          ? `<input type="date" style="border:1px solid #CBD5E1;border-radius:5px;padding:2px 4px;font-size:9.5px;font-family:Outfit,sans-serif;width:110px" value="${(row.targetFinish||'')+((row.targetFinish||'').length===7?'-01':'')}" onchange="updSel(${idx},'targetFinish',this.value)">`
           : `<span style="font-size:10px;font-weight:600;color:#475569">${row.targetFinish||'–'}</span>`
         }
       </td>
@@ -975,8 +1045,20 @@ async function toggleICU(i){tData[i].isICU=!tData[i].isICU;if(tData[i].isICU&&!t
 window.toggleICU=toggleICU;
 async function updUnit(i,val,el){
   const custDiv=document.getElementById('ucust_'+i);
-  if(val==='custom'){if(custDiv)custDiv.style.display='block';}
-  else{if(custDiv)custDiv.style.display='none';tData[i].unit=val;await saveRow(tData[i]);}
+  if(val==='custom'){
+    if(custDiv){
+      custDiv.style.display='block';
+      setTimeout(()=>{
+        const inp=document.getElementById('ucustinp_'+i);
+        if(inp){inp.value='';inp.focus();}
+      },80);
+    }
+  } else {
+    if(custDiv)custDiv.style.display='none';
+    tData[i].unit=val;
+    await saveRow(tData[i]);
+    renderDash();
+  }
 }
 window.updUnit=updUnit;
 async function updSel(i,f,v){tData[i][f]=v;await saveRow(tData[i]);renderDash();}
@@ -1099,7 +1181,7 @@ function buildPPT(data,title,dateDisp,unitName,onDone){
   s1.addShape(pptx.shapes.RECTANGLE,{x:1.1,y:1.35,w:.1,h:4.4,fill:{color:CR}});
   try{s1.addImage({data:/* logo set below */
 document.getElementById('logoImg').src,x:1.45,y:1.6,w:1.5,h:.52});}catch(e){}
-  s1.addText('ICU EQUIPMENT LIST',{x:1.35,y:2.32,w:10.6,h:.82,fontFace:'Calibri',fontSize:42,bold:true,color:CN,charSpacing:4});
+  s1.addText('EQUIPMENT HEALTH MONITORING',{x:1.35,y:2.32,w:10.6,h:.82,fontFace:'Calibri',fontSize:42,bold:true,color:CN,charSpacing:4});
   s1.addText(title,{x:1.35,y:3.14,w:10.6,h:.44,fontFace:'Calibri',fontSize:16,color:CR,italic:true});
   s1.addShape(pptx.shapes.RECTANGLE,{x:1.5,y:3.72,w:9.3,h:.02,fill:{color:'D5D8DC'}});
   s1.addText(unitName+' · '+dateDisp,{x:1.5,y:3.87,w:10,h:.37,fontFace:'Calibri',fontSize:13,color:'7F8C8D'});
@@ -1116,13 +1198,13 @@ document.getElementById('logoImg').src,x:1.45,y:1.6,w:1.5,h:.52});}catch(e){}
   s2.addShape(pptx.shapes.RECTANGLE,{x:0,y:H-.26,w:W,h:.26,fill:{color:CN}});
   s2.addText('Technical Support – '+unitName+' | '+dateDisp,{x:.3,y:H-.24,w:12.7,h:.2,fontFace:'Calibri',fontSize:8,color:'AAAAAA',align:'right'});
   // Data slides
-  const ROWS=7,chunks=[];for(let i=0;i<data.length;i+=ROWS)chunks.push(data.slice(i,i+ROWS));
+  const ROWS=6,chunks=[];for(let i=0;i<data.length;i+=ROWS)chunks.push(data.slice(i,i+ROWS));
   chunks.forEach((chunk,ci)=>{
     const sd=pptx.addSlide();sd.background={color:CL};
     sd.addShape(pptx.shapes.RECTANGLE,{x:0,y:0,w:W,h:.68,fill:{color:CN}});sd.addShape(pptx.shapes.RECTANGLE,{x:0,y:0,w:.18,h:.68,fill:{color:CR}});
-    sd.addText('DAFTAR ICU EQUIPMENT'+(chunks.length>1?` (${ci+1}/${chunks.length})`:''),{x:.36,y:.07,w:10,h:.55,fontFace:'Calibri',fontSize:17,bold:true,color:CW,charSpacing:2});
+    sd.addText('EQUIPMENT HIGHLIGHT LIST'+(chunks.length>1?` (${ci+1}/${chunks.length})`:''),{x:.36,y:.07,w:10,h:.55,fontFace:'Calibri',fontSize:17,bold:true,color:CW,charSpacing:2});
     sd.addText(dateDisp,{x:9.5,y:.2,w:3.6,h:.35,fontFace:'Calibri',fontSize:11,color:'AAAAAA',align:'right'});
-    const cols=[{l:'UNIT',x:.12,w:.7},{l:'TAG',x:.82,w:1.3},{l:'RISK',x:2.12,w:.8},{l:'ISSUE',x:2.92,w:2.0},{l:'COUNTER',x:4.92,w:1.75},{l:'CONDITION',x:6.67,w:1.65},{l:'ST',x:8.32,w:.56},{l:'SOLUTION',x:8.88,w:2.2},{l:'PR',x:11.08,w:.58},{l:'DURASI',x:11.66,w:1.52}];
+    const cols=[{l:'UNIT',x:.12,w:.55},{l:'DISIPLIN',x:.67,w:.75},{l:'TAG',x:1.42,w:1.2},{l:'RISK',x:2.62,w:.65},{l:'ISSUE & CONDITION',x:3.27,w:2.3},{l:'COUNTER MEASURE',x:5.57,w:2.1},{l:'STATUS',x:7.67,w:.58},{l:'PROG LW',x:8.25,w:1.35},{l:'PROG TW',x:9.60,w:1.35},{l:'TL',x:10.95,w:.45},{l:'PIC',x:11.40,w:.88},{l:'TARGET',x:12.28,w:.9}];
     const hY=.8,hH=.34;
     sd.addShape(pptx.shapes.RECTANGLE,{x:.12,y:hY,w:W-.24,h:hH,fill:{color:CN2}});
     cols.forEach(c=>sd.addText(c.l,{x:c.x+.02,y:hY+.03,w:c.w-.04,h:hH-.06,fontFace:'Calibri',fontSize:7.5,bold:true,color:CW,align:'center',valign:'middle'}));
@@ -1130,24 +1212,39 @@ document.getElementById('logoImg').src,x:1.45,y:1.6,w:1.5,h:.52});}catch(e){}
     chunk.forEach((row,ri)=>{
       const ry=hY+hH+ri*rowH;
       sd.addShape(pptx.shapes.RECTANGLE,{x:.12,y:ry,w:W-.24,h:rowH-.02,fill:{color:ri%2===0?'FFFFFF':'F8FAFC'}});
-      const cs={fontFace:'Calibri',fontSize:8,color:CN,valign:'top'};
-      sd.addText(row.unit||'',{x:cols[0].x+.02,y:ry+.03,w:cols[0].w-.04,h:rowH-.08,...cs,bold:true,align:'center',fontSize:9});
-      sd.addText(row.tag||'',{x:cols[1].x+.02,y:ry+.03,w:cols[1].w-.04,h:rowH-.08,...cs,fontSize:7.5,bold:true});
+      const cs={fontFace:'Calibri',fontSize:7.5,color:CN,valign:'top'};
+      // Col 0: UNIT
+      sd.addText(row.unit||'',{x:cols[0].x+.02,y:ry+.03,w:cols[0].w-.04,h:rowH-.08,...cs,bold:true,align:'center',fontSize:8});
+      // Col 1: DISIPLIN
+      const dcol={'Static':'7C3AED','Rotating':'1D4ED8','Instrument':'D97706','Electrical':'16A34A'}[row.disiplin]||CN;
+      sd.addText((row.disiplin||'').slice(0,4),{x:cols[1].x+.02,y:ry+.05,w:cols[1].w-.04,h:.2,fontFace:'Calibri',fontSize:7,bold:true,color:'FFFFFF',align:'center'});
+      sd.addShape(pptx.shapes.RECTANGLE,{x:cols[1].x+.02,y:ry+.04,w:cols[1].w-.04,h:.22,fill:{color:dcol}});
+      sd.addText((row.disiplin||'').slice(0,4).toUpperCase(),{x:cols[1].x+.02,y:ry+.05,w:cols[1].w-.04,h:.2,fontFace:'Calibri',fontSize:7,bold:true,color:'FFFFFF',align:'center'});
+      // Col 2: TAG
+      sd.addText(row.tag||'',{x:cols[2].x+.02,y:ry+.03,w:cols[2].w-.04,h:rowH-.08,...cs,fontSize:7.5,bold:true});
+      // Col 3: RISK
       const rc=row.risk==='High'?'C0392B':row.risk==='Medium'?'D97706':'16A34A';const rb=row.risk==='High'?'FEE2E2':row.risk==='Medium'?'FEF3C7':'DCFCE7';
-      sd.addShape(pptx.shapes.RECTANGLE,{x:cols[2].x+.07,y:ry+.06,w:cols[2].w-.14,h:.22,fill:{color:rb}});
-      sd.addText((row.risk||'').toUpperCase(),{x:cols[2].x+.05,y:ry+.06,w:cols[2].w-.1,h:.22,fontFace:'Calibri',fontSize:7.5,bold:true,color:rc,align:'center'});
-      sd.addText(row.issue||'',{x:cols[3].x+.02,y:ry+.03,w:cols[3].w-.04,h:rowH-.08,...cs});
-      sd.addText(row.counter||'',{x:cols[4].x+.02,y:ry+.03,w:cols[4].w-.04,h:rowH-.08,...cs});
-      sd.addText(row.condition||'',{x:cols[5].x+.02,y:ry+.03,w:cols[5].w-.04,h:rowH-.08,...cs});
+      sd.addShape(pptx.shapes.RECTANGLE,{x:cols[3].x+.04,y:ry+.05,w:cols[3].w-.08,h:.2,fill:{color:rb}});
+      sd.addText((row.risk||'').toUpperCase(),{x:cols[3].x+.04,y:ry+.05,w:cols[3].w-.08,h:.2,fontFace:'Calibri',fontSize:7,bold:true,color:rc,align:'center'});
+      // Col 4: ISSUE & CONDITION
+      sd.addText((row.issue||'')+(row.condition?'\n['+row.condition+']':''),{x:cols[4].x+.02,y:ry+.03,w:cols[4].w-.04,h:rowH-.08,...cs,fontSize:7});
+      // Col 5: COUNTER MEASURE
+      sd.addText((row.counter||'')+(row.solution?'\n'+row.solution:''),{x:cols[5].x+.02,y:ry+.03,w:cols[5].w-.04,h:rowH-.08,...cs,fontSize:7});
+      // Col 6: STATUS dot
       const sc2=row.status==='danger'?'C0392B':row.status==='alert'?'F59E0B':'16A34A';
-      sd.addShape(pptx.shapes.RECTANGLE,{x:cols[6].x+.15,y:ry+.08,w:.2,h:.2,fill:{color:sc2}});
-      sd.addText(row.solution||'',{x:cols[7].x+.02,y:ry+.03,w:cols[7].w-.04,h:rowH-.08,...cs,fontSize:7.5});
+      sd.addShape(pptx.shapes.OVAL,{x:cols[6].x+.19,y:ry+.1,w:.18,h:.18,fill:{color:sc2}});
+      // Col 7: PROG LW
+      sd.addText(row.progressLW||'–',{x:cols[7].x+.02,y:ry+.03,w:cols[7].w-.04,h:rowH-.08,...cs,fontSize:7});
+      // Col 8: PROG TW
+      sd.addText(row.progressTW||'–',{x:cols[8].x+.02,y:ry+.03,w:cols[8].w-.04,h:rowH-.08,...cs,fontSize:7});
+      // Col 9: TL (progress)
       const pc2=row.progress==='delay'?'C0392B':row.progress==='need-support'?'F59E0B':row.progress==='done'?'1D4ED8':'16A34A';
-      sd.addShape(pptx.shapes.OVAL,{x:cols[8].x+.15,y:ry+.08,w:.2,h:.2,fill:{color:pc2}});
-      const dt=durTxt(row.icuStart),dc2=durCls(row.icuStart);
-      const dfg=dc2==='d-crit'?'C0392B':dc2==='d-warn'?'D97706':'16A34A';const dbg2=dc2==='d-crit'?'FEE2E2':dc2==='d-warn'?'FEF3C7':'DCFCE7';
-      sd.addShape(pptx.shapes.RECTANGLE,{x:cols[9].x+.03,y:ry+.06,w:cols[9].w-.06,h:.24,fill:{color:dbg2}});
-      sd.addText(dt,{x:cols[9].x+.03,y:ry+.06,w:cols[9].w-.06,h:.24,fontFace:'Calibri',fontSize:7,bold:true,color:dfg,align:'center'});
+      sd.addShape(pptx.shapes.OVAL,{x:cols[9].x+.12,y:ry+.1,w:.18,h:.18,fill:{color:pc2}});
+      // Col 10: PIC
+      sd.addText(row.pic||'–',{x:cols[10].x+.02,y:ry+.03,w:cols[10].w-.04,h:rowH-.08,...cs,fontSize:7,align:'center'});
+      // Col 11: TARGET
+      const tgt=row.targetFinish?row.targetFinish.substring(0,10):'–';
+      sd.addText(tgt,{x:cols[11].x+.02,y:ry+.03,w:cols[11].w-.04,h:rowH-.08,...cs,fontSize:7,align:'center'});
       sd.addShape(pptx.shapes.LINE,{x:.12,y:ry+rowH-.02,w:W-.24,h:0,line:{color:'E2E8F0',width:.5}});
     });
     sd.addShape(pptx.shapes.RECTANGLE,{x:0,y:H-.26,w:W,h:.26,fill:{color:CN}});
@@ -1161,7 +1258,7 @@ document.getElementById('logoImg').src,x:1.45,y:1.6,w:1.5,h:.52});}catch(e){}
   sc.addShape(pptx.shapes.RECTANGLE,{x:0,y:6.84,w:W,h:.66,fill:{color:CR}});
   sc.addText('Technical Support – '+unitName+' | '+dateDisp,{x:.5,y:6.89,w:12.3,h:.48,fontFace:'Calibri',fontSize:11,color:CW,align:'center'});
   const safe=(title||'ICU').replace(/[^a-zA-Z0-9_-]/g,'_').substring(0,38);
-  pptx.writeFile({fileName:'ICU_List_'+safe+'.pptx'}).then(()=>{toast('PPT berhasil didownload!','🎉');if(onDone)onDone();}).catch(e=>{toast('Gagal: '+e.message,'❌');if(onDone)onDone();});
+  pptx.writeFile({fileName:'EHM_'+safe+'.pptx'}).then(()=>{toast('PPT berhasil didownload!','🎉');if(onDone)onDone();}).catch(e=>{toast('Gagal: '+e.message,'❌');if(onDone)onDone();});
 }
 </script>
 <script src="https://cdn.jsdelivr.net/npm/pptxgenjs@3.12.0/dist/pptxgen.bundle.js"></script>
