@@ -80,6 +80,7 @@ body{font-family:'Outfit',sans-serif;background:#0D1B2A;color:var(--text);min-he
 .tabbt.on{color:#fff;border-bottom-color:var(--red)}
 .tabbt.adm{display:none}
 body.isadm .tabbt.adm{display:flex}
+.isview .ed{pointer-events:none}
 .wrap{max-width:1580px;margin:0 auto;padding:18px 18px 40px}
 /* TITLE BAR */
 .tbar{background:#fff;border-radius:12px;padding:12px 16px;margin-bottom:14px;display:flex;align-items:center;gap:11px;flex-wrap:wrap;box-shadow:var(--sh);border:1px solid var(--border)}
@@ -135,8 +136,10 @@ body.isadm .tabbt.adm{display:flex}
 .sf{background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.2);color:#fff;border-radius:7px;padding:5px 7px;font-size:11px;cursor:pointer;outline:none;font-family:'Outfit',sans-serif}
 .sf option{background:var(--navy)}
 .btnadd{background:#16A34A;color:#fff;border:none;padding:6px 12px;border-radius:7px;font-size:12px;font-weight:600;cursor:pointer;font-family:'Outfit',sans-serif;transition:all .15s}
+/* Role-based visibility */
+body:not(.isadm):not(.iseditor) .btnadd{display:none!important}
+body:not(.isadm) .tabbt.adm{display:none!important}
 .btnadd:hover{background:#15803D}
-body.isview .btnadd{display:none}
 body.isview .btndel{display:none!important}
 body.isview .ed{cursor:default;pointer-events:none}
 body.isview .rb,body.isview .sq,body.isview .pd,body.isview .db{cursor:default;pointer-events:none}
@@ -633,13 +636,14 @@ async function routeUser(user){
     $('siErr').classList.add('on');
     $('loginPage').style.display='flex';return;
   }
-  // Support both 'fullName' and 'full name' field variants
-  const displayName=uProf.fullName||uProf['full name']||user.email;
-  const displayRole=uProf.role||'viewer';
+  // Support all field name variants
+  const displayName=uProf.fullName||uProf.fullname||uProf['full name']||uProf['full_name']||user.email;
+  const displayRole=(uProf.role||'viewer').toLowerCase().trim();
   $('uName').textContent=displayName;
-  $('uRole').textContent=displayRole;
+  $('uRole').textContent=displayRole.toUpperCase();
   if(displayRole==='admin')document.body.classList.add('isadm');
   if(displayRole==='viewer')document.body.classList.add('isview');
+  if(displayRole==='editor')document.body.classList.add('iseditor');
   $('loginPage').style.display='none';
   $('pendingPage').style.display='none';
   $('appPage').style.display='block';
