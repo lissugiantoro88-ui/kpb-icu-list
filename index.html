@@ -91,7 +91,7 @@ body{font-family:'Outfit',sans-serif;background:#0D1B2A;color:var(--text);min-he
 .ondot{width:7px;height:7px;background:#16A34A;border-radius:50%;animation:pulse 2s infinite}
 @keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
 /* DASHBOARD */
-.dsec{margin-bottom:14px}
+.dsec{margin-bottom:14px;background:#fff;border-radius:12px;padding:14px 16px;box-shadow:0 1px 5px rgba(0,0,0,.07)}
 .dglbl{font-size:10.5px;font-weight:800;text-transform:uppercase;letter-spacing:.1em;color:#1E293B;margin:18px 0 10px;padding:7px 14px;background:#F8FAFC;border-left:4px solid #C0392B;border-radius:0 6px 6px 0;display:flex;align-items:center;gap:6px}
 .drow{display:flex;gap:8px;flex-wrap:nowrap;margin-bottom:8px;overflow-x:auto;padding-bottom:2px}
 .dc{background:#fff;border-radius:10px;padding:11px 12px 9px;display:flex;flex-direction:column;align-items:center;gap:2px;border-top:3px solid transparent;box-shadow:var(--sh);border-left:1px solid var(--border);border-right:1px solid var(--border);border-bottom:1px solid var(--border);min-width:90px;flex:1;transition:transform .15s,box-shadow .15s}
@@ -132,7 +132,7 @@ body{font-family:'Outfit',sans-serif;background:#0D1B2A;color:var(--text);min-he
 .sbox{display:flex;align-items:center;gap:5px;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.2);border-radius:7px;padding:5px 9px;min-width:160px}
 .sbox input{background:none;border:none;outline:none;color:#fff;font-size:12px;width:100%;font-family:'Outfit',sans-serif}
 .sbox input::placeholder{color:rgba(255,255,255,.4)}
-.sf{background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.2);color:#fff;border-radius:7px;padding:5px 7px;font-size:11px;cursor:pointer;outline:none;font-family:'Outfit',sans-serif}
+.sf{background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.2);color:#fff;border-radius:7px;padding:4px 6px;font-size:10.5px;cursor:pointer;outline:none;font-family:'Outfit',sans-serif;max-width:120px}
 .sf option{background:var(--navy)}
 .btnadd{background:#16A34A;color:#fff;border:none;padding:6px 12px;border-radius:7px;font-size:12px;font-weight:600;cursor:pointer;font-family:'Outfit',sans-serif;transition:all .15s}
 /* Role-based visibility */
@@ -424,6 +424,7 @@ tbody td:last-child{border-right:none}
           <span class="ttitle">📋 Equipment Highlight List <span class="sbadge sb-ok" id="syncBdg">● Live</span></span>
           <div class="tbr">
             <div class="sbox"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,.5)" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg><input id="srch" placeholder="Cari unit, tag…" oninput="applyF()"></div>
+            <select class="sf" id="fU" onchange="applyF()"><option value="">Semua Unit</option></select>
             <select class="sf" id="fD" onchange="applyF()"><option value="">Semua Disiplin</option><option>Static</option><option>Rotating</option><option>Instrument</option><option>Electrical</option></select>
             <select class="sf" id="fR" onchange="applyF()"><option value="">Semua Risk</option><option>High</option><option>Medium</option><option>Low</option></select>
             <select class="sf" id="fS" onchange="applyF()"><option value="">Semua Status</option><option value="danger">Danger</option><option value="alert">Alert</option><option value="good">Good</option></select>
@@ -670,7 +671,7 @@ function startEquipSync(){
   setSB('ing','⟳ Memuat…');
   unsubE=onSnapshot(q,snap=>{
     tData=snap.docs.map(d=>({id:d.id,...d.data()}));
-    setSB('ok','● Live');applyF();
+    setSB('ok','● Live');applyF();populateUnitFilter();renderDash();
   },e=>{setSB('err','● Offline');toast('Sync error: '+e.message,'❌');});
 }
 async function saveRow(row){
@@ -912,56 +913,66 @@ function durCls(s){const ms=durMs(s);if(!ms)return 'd-none';const d=Math.floor(m
 // ── DASHBOARD ─────────────────────────────────────
 function renderDash(){
   const d=tData,c=fn=>d.filter(fn).length;
-  const top=[...d].filter(x=>x.icuStart).sort((a,b)=>durMs(b.icuStart)-durMs(a.icuStart)).slice(0,5);
-  const card=(val,lbl,sub,clr,bg='#fff')=>`<div style="background:${bg};border-radius:10px;padding:14px 16px;min-width:90px;flex:1;box-shadow:0 1px 4px rgba(0,0,0,.07);border-bottom:3px solid ${clr};text-align:center"><div style="font-size:26px;font-weight:800;color:${clr};line-height:1.1">${val}</div><div style="font-size:11px;font-weight:700;color:#1E293B;margin-top:4px">${lbl}</div><div style="font-size:9.5px;color:#94A3B8;margin-top:2px">${sub}</div></div>`;
-  const sec=(icon,title,clr,content)=>`<div style="background:#fff;border-radius:14px;padding:16px 18px;margin-bottom:14px;box-shadow:0 1px 6px rgba(0,0,0,.08)"><div style="display:flex;align-items:center;gap:8px;margin-bottom:14px;padding-bottom:10px;border-bottom:2px solid #F1F5F9"><span style="font-size:18px">${icon}</span><span style="font-size:12px;font-weight:800;text-transform:uppercase;letter-spacing:.08em;color:${clr}">${title}</span></div><div style="display:flex;flex-wrap:wrap;gap:10px">${content}</div></div>`;
+  const top=[...d].filter(x=>x.icuStart).sort((a,b)=>durMs(b.icuStart)-durMs(a.icuStart)).slice(0,3);
   
-  const overviewCards=
-    card(d.length,'Total Equipment','Semua Disiplin','#334155','#F8FAFC')+
-    card(c(r=>r.isICU===true),'ICU','Monitoring Khusus','#C0392B','#FFF5F5')+
-    card(c(r=>r.disiplin==='Static'),'Static','Equipment','#7C3AED','#FAF5FF')+
-    card(c(r=>r.disiplin==='Rotating'),'Rotating','Equipment','#1D4ED8','#EFF6FF')+
-    card(c(r=>r.disiplin==='Instrument'),'Instrument','Equipment','#D97706','#FFFBEB')+
-    card(c(r=>r.disiplin==='Electrical'),'Electrical','Equipment','#16A34A','#F0FDF4');
+  // Compact card helper
+  const kv=(val,lbl,clr,bg)=>`<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;background:${bg};border-radius:8px;padding:8px 10px;min-width:64px;flex:1;border-bottom:2px solid ${clr}"><span style="font-size:22px;font-weight:800;color:${clr};line-height:1">${val}</span><span style="font-size:9px;font-weight:600;color:#64748B;margin-top:3px;text-align:center;white-space:nowrap">${lbl}</span></div>`;
+  const row=(title,icon,clr,cards)=>`<div style="margin-bottom:10px"><div style="font-size:9.5px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:${clr};margin-bottom:6px;display:flex;align-items:center;gap:4px">${icon} ${title}</div><div style="display:flex;flex-wrap:wrap;gap:6px">${cards}</div></div>`;
 
-  const riskCards=
-    card(c(r=>r.risk==='High'),'High Risk','Prioritas','#DC2626','#FEF2F2')+
-    card(c(r=>r.risk==='Medium'),'Medium Risk','Perhatian','#F59E0B','#FFFBEB')+
-    card(c(r=>r.risk==='Low'),'Low Risk','Normal','#16A34A','#F0FDF4');
-
-  const statusCards=
-    card(c(r=>r.status==='danger'),'Danger','Status','#DC2626','#FEF2F2')+
-    card(c(r=>r.status==='alert'),'Alert','Status','#F59E0B','#FFFBEB')+
-    card(c(r=>r.status==='good'),'Good','Status','#16A34A','#F0FDF4');
-
-  const progressCards=
-    card(c(r=>r.progress==='delay'),'Delay','Progress','#DC2626','#FEF2F2')+
-    card(c(r=>r.progress==='need-support'),'Need Support','Progress','#F59E0B','#FFFBEB')+
-    card(c(r=>r.progress==='on-track'),'On Track','Progress','#16A34A','#F0FDF4')+
-    card(c(r=>r.progress==='done'),'Done','Progress','#1D4ED8','#EFF6FF');
-
-  const durCards=
-    card(c(r=>durCls(r.icuStart)==='d-crit'),'>6 Bulan','Kritis','#DC2626','#FEF2F2')+
-    card(c(r=>durCls(r.icuStart)==='d-warn'),'1–6 Bulan','Perhatian','#F59E0B','#FFFBEB')+
-    card(c(r=>durCls(r.icuStart)==='d-ok'),'<30 Hari','Normal','#16A34A','#F0FDF4')+
-    `<div style="background:#F8FAFC;border-radius:10px;padding:12px 14px;flex:3;min-width:200px;box-shadow:0 1px 4px rgba(0,0,0,.06)"><div style="font-size:10px;font-weight:700;color:#64748B;text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px">⏰ Top Durasi Terlama</div>${top.map(r=>`<div style="display:flex;justify-content:space-between;align-items:center;padding:4px 0;border-bottom:1px solid #E2E8F0"><span style="font-size:10px;font-weight:600;color:#1E293B">${r.unit} – ${(r.tag||'').slice(0,16)}</span><span class="db ${durCls(r.icuStart)}" style="font-size:9px">${durTxt(r.icuStart)}</span></div>`).join('')}</div>`;
+  const sep=`<div style="border-top:1px solid #E2E8F0;margin:10px 0"></div>`;
 
   $('dashSec').innerHTML=
-    sec('📊','Overview Equipment','#1D4ED8', overviewCards)+
-    sec('⚠️','Risk Level','#DC2626', riskCards)+
-    sec('📈','Status & Progress','#7C3AED', statusCards+'<div style="width:100%;height:1px;background:#F1F5F9;margin:4px 0"></div>'+progressCards)+
-    sec('⏱️','Durasi Monitor','#D97706', durCards);
+    row('Overview','📊','#1D4ED8',
+      kv(d.length,'Total','#1D4ED8','#EFF6FF')+
+      kv(c(r=>r.isICU),'ICU','#C0392B','#FEF2F2')+
+      kv(c(r=>r.disiplin==='Static'),'Static','#7C3AED','#FAF5FF')+
+      kv(c(r=>r.disiplin==='Rotating'),'Rotating','#1D4ED8','#EFF6FF')+
+      kv(c(r=>r.disiplin==='Instrument'),'Instr.','#D97706','#FFFBEB')+
+      kv(c(r=>r.disiplin==='Electrical'),'Elec.','#16A34A','#F0FDF4')
+    )+sep+
+    row('Risk','⚠️','#DC2626',
+      kv(c(r=>r.risk==='High'),'High','#DC2626','#FEF2F2')+
+      kv(c(r=>r.risk==='Medium'),'Medium','#F59E0B','#FFFBEB')+
+      kv(c(r=>r.risk==='Low'),'Low','#16A34A','#F0FDF4')
+    )+sep+
+    row('Status','🔵','#475569',
+      kv(c(r=>r.status==='danger'),'Danger','#DC2626','#FEF2F2')+
+      kv(c(r=>r.status==='alert'),'Alert','#F59E0B','#FFFBEB')+
+      kv(c(r=>r.status==='good'),'Good','#16A34A','#F0FDF4')
+    )+sep+
+    row('Progress','📈','#7C3AED',
+      kv(c(r=>r.progress==='delay'),'Delay','#DC2626','#FEF2F2')+
+      kv(c(r=>r.progress==='need-support'),'Need Supp.','#F59E0B','#FFFBEB')+
+      kv(c(r=>r.progress==='on-track'),'On Track','#16A34A','#F0FDF4')+
+      kv(c(r=>r.progress==='done'),'Done','#1D4ED8','#EFF6FF')
+    )+sep+
+    row('Durasi Monitor','⏱️','#D97706',
+      kv(c(r=>durCls(r.icuStart)==='d-crit'),'>6 Bln','#DC2626','#FEF2F2')+
+      kv(c(r=>durCls(r.icuStart)==='d-warn'),'1–6 Bln','#F59E0B','#FFFBEB')+
+      kv(c(r=>durCls(r.icuStart)==='d-ok'),'<30 Hr','#16A34A','#F0FDF4')+
+      `<div style="background:#F8FAFC;border-radius:8px;padding:8px 10px;flex:3;min-width:160px;font-size:9px">`+
+      `<div style="font-weight:700;color:#64748B;margin-bottom:5px;text-transform:uppercase;font-size:8.5px;letter-spacing:.06em">Top Terlama</div>`+
+      top.map(r=>`<div style="display:flex;justify-content:space-between;align-items:center;padding:2px 0;border-bottom:1px solid #F1F5F9"><span style="font-weight:600;color:#334155">${r.unit} – ${(r.tag||'').slice(0,12)}</span><span class="db ${durCls(r.icuStart)}">${durTxt(r.icuStart)}</span></div>`).join('')+
+      `</div>`
+    );
 }
 
 // ── FILTER / SORT / TABLE ────────────────────────
 function applyF(){
   const q=$('srch').value.toLowerCase();
-  const fd=$('fD').value,fr=$('fR').value,fs=$('fS').value,fp=$('fP').value,fi=$('fICU')?$('fICU').value:'';
-  fData=tData.filter((r,i)=>{r._i=i;const txt=[r.unit,r.tag,r.disiplin,r.issue,r.counter,r.condition,r.solution,r.progressLW,r.progressTW,r.pic].join(' ').toLowerCase();return(!q||txt.includes(q))&&(!fd||r.disiplin===fd)&&(!fr||r.risk===fr)&&(!fs||r.status===fs)&&(!fp||r.progress===fp)&&(!fi||(fi==='icu'?r.isICU===true:r.isICU!==true));});
+  const fd=$('fD').value,fr=$('fR').value,fs=$('fS').value,fp=$('fP').value,fi=$('fICU')?$('fICU').value:'',fu=$('fU')?$('fU').value:'';
+  fData=tData.filter((r,i)=>{r._i=i;const txt=[r.unit,r.tag,r.disiplin,r.issue,r.counter,r.condition,r.solution,r.progressLW,r.progressTW,r.pic].join(' ').toLowerCase();return(!q||txt.includes(q))&&(!fd||r.disiplin===fd)&&(!fr||r.risk===fr)&&(!fs||r.status===fs)&&(!fp||r.progress===fp)&&(!fi||(fi==='icu'?r.isICU===true:r.isICU!==true))&&(!fu||r.unit===fu);});
   if(sCol)fData.sort((a,b)=>{const av=a[sCol]||'',bv=b[sCol]||'';return av<bv?-sDir:av>bv?sDir:0;});
   curPage=1;renderT();
 }
 window.applyF=applyF;
+function populateUnitFilter(){
+  const sel=$('fU');if(!sel)return;
+  const cur=sel.value;
+  const units=[...new Set(tData.map(r=>r.unit).filter(u=>u&&u!=='custom'&&u.trim()))].sort((a,b)=>a.localeCompare(b,undefined,{numeric:true}));
+  sel.innerHTML='<option value="">Semua Unit</option>'+units.map(u=>`<option value="${u}"${cur===u?' selected':''}>${u}</option>`).join('');
+}
+window.populateUnitFilter=populateUnitFilter;
 function srtBy(col){if(sCol===col)sDir*=-1;else{sCol=col;sDir=1;}document.querySelectorAll('thead th').forEach(th=>{th.classList.remove('sorted');const si=th.querySelector('.si');if(si)si.textContent='⇅';});const th=document.querySelector(`thead th[data-c="${col}"]`);if(th){th.classList.add('sorted');th.querySelector('.si').textContent=sDir===1?'↑':'↓';}applyF();}
 window.srtBy=srtBy;
 
