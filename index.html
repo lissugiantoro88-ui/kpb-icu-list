@@ -413,8 +413,8 @@ tbody td:last-child{border-right:none}
     <div id="pMain" class="mpanel">
       <div class="tbar">
         <span class="tl">Judul:</span>
-        <input class="ti" id="slideTitle" value="Equipment Health Monitoring – Q1 2026">
-        <span class="tl">Tgl:</span><input type="date" class="di" id="slideDate">
+        <input class="ti" id="slideTitle" value="" placeholder="Judul snapshot (contoh: EHM – W12 Mar 2026)">
+        <span class="tl" title="Tanggal periode untuk header PPT – tidak mempengaruhi waktu snapshot">📅 Periode PPT:</span><input type="date" class="di" id="slideDate" title="Periode yang akan tampil di header PPT">
         <input type="hidden" id="slideUnit" value="PT Kilang Pertamina Balikpapan">
         <div class="onbar"><span id="onlineCnt" style="font-size:11px;font-weight:600;color:#16A34A" title="Lihat siapa online">● 0 online</span></div>
       </div>
@@ -883,10 +883,15 @@ function startSnapSync(){
   unsubS=onSnapshot(q,snap=>{snaps=snap.docs.map(d=>({id:d.id,...d.data()}));renderSnaps();renderTrend();});
 }
 window.saveSnapshot=async function(){
+  const titleVal=$('slideTitle').value.trim();
+  if(!titleVal){
+    const ok=confirm('Judul snapshot kosong!\n\nDisarankan mengisi judul (contoh: "EHM – W12 Mar 2026") agar mudah diidentifikasi.\n\nLanjutkan tanpa judul?');
+    if(!ok)return;
+  }
   const now=new Date();
   const lbl=now.toLocaleDateString('id-ID',{weekday:'short',day:'numeric',month:'short',year:'numeric'})+' '+now.toLocaleTimeString('id-ID',{hour:'2-digit',minute:'2-digit'});
   try{
-    await addDoc(collection(db,'ehm_snapshots'),{title:$('slideTitle').value||'Equipment Health Monitoring',lbl,dataJson:JSON.stringify(tData),savedBy:uProf?.fullName||curUser?.email,createdAt:serverTimestamp()});
+    await addDoc(collection(db,'ehm_snapshots'),{title:$('slideTitle').value||'(Tanpa Judul)',lbl,periodeDate:$('slideDate').value||'',dataJson:JSON.stringify(tData),savedBy:uProf?.fullName||curUser?.email,createdAt:serverTimestamp()});
     toast('Snapshot tersimpan ke Firebase!','💾');
   }catch(e){toast('Gagal: '+e.message,'❌');}
 };
@@ -1145,8 +1150,8 @@ function renderDash(){
       kv(c(r=>durCls(r.icuStart)==='d-warn'),'1–6 Bln','#F59E0B','#FFFBEB')+
       kv(c(r=>durCls(r.icuStart)==='d-ok'),'<30 Hr','#16A34A','#F0FDF4')+
       `<div style="background:#F8FAFC;border-radius:8px;padding:8px 10px;flex:3;min-width:160px;font-size:9px">`+
-      `<div style="font-weight:700;color:#64748B;margin-bottom:5px;text-transform:uppercase;font-size:8.5px;letter-spacing:.06em">Top Terlama</div>`+
-      top.map(r=>`<div style="display:flex;justify-content:space-between;align-items:center;padding:2px 0;border-bottom:1px solid #F1F5F9"><span style="font-weight:600;color:#334155">${r.unit} – ${(r.tag||'').slice(0,12)}</span><span class="db ${durCls(r.icuStart)}">${durTxt(r.icuStart)}</span></div>`).join('')+
+      `<div style="font-weight:700;color:#64748B;margin-bottom:5px;text-transform:uppercase;font-size:8.5px;letter-spacing:.06em">🏥 Top 5 Equipment ICU — Durasi Terlama</div>`+
+      top.map(r=>`<div style="display:flex;justify-content:space-between;align-items:center;padding:3px 0;border-bottom:1px solid #F1F5F9;gap:8px"><div style="min-width:0"><span style="font-weight:700;color:#334155;font-size:11px">${r.unit||'–'}</span><span style="color:#64748B;font-size:10px;display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${r.tag||'–'}${r.disiplin?' · '+r.disiplin:''}</span></div><span class="db ${durCls(r.icuStart)}" style="flex-shrink:0">${durTxt(r.icuStart)}</span></div>`).join('')+
       `</div>`
     );
 }
@@ -1307,8 +1312,11 @@ function renderSnaps(){
     const run=c(r=>(r.opStatus||'running')==='running'),rep=c(r=>r.opStatus==='repair'),stb=c(r=>r.opStatus==='standby');
     const de=c(r=>r.progress==='delay'),ns=c(r=>r.progress==='need-support'),ot=c(r=>r.progress==='on-track'),dn=c(r=>r.progress==='done');
     html+=`<div class="snrow">
-      <div style="display:flex;align-items:center;gap:4px;font-size:9.5px;color:var(--muted)"><div class="sndot"></div>${s.lbl||'–'}</div>
-      <div style="font-size:11.5px;font-weight:700;padding:0 7px">${s.title}<span style="font-size:9px;color:var(--muted);font-weight:400;margin-left:3px">– ${s.savedBy||'?'}</span></div>
+      <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:4px">
+        <div style="display:flex;align-items:center;gap:4px;font-size:9.5px;color:var(--muted)"><div class="sndot"></div><span>💾 Disimpan: ${s.lbl||'–'}</span></div>
+        ${s.periodeDate?`<span style="font-size:9px;background:#EFF6FF;color:#1D4ED8;padding:1px 7px;border-radius:8px;font-weight:600">📅 Periode: ${new Date(s.periodeDate+'T00:00:00').toLocaleDateString('id-ID',{day:'numeric',month:'short',year:'numeric'})}</span>`:''}
+      </div>
+      <div style="font-size:11.5px;font-weight:700;padding:2px 7px 0">${s.title}<span style="font-size:9px;color:var(--muted);font-weight:400;margin-left:3px">– ${s.savedBy||'?'}</span></div>
       <div style="text-align:center"><span class="spill" style="background:#DBEAFE;color:#1D4ED8">${data.length}</span></div>
       <div style="text-align:center">${hi?`<span class="spill" style="background:#FEE2E2;color:#991B1B">H${hi}</span>`:''}${me?`<span class="spill" style="background:#FEF3C7;color:#92400E">M${me}</span>`:''}${lo?`<span class="spill" style="background:#DCFCE7;color:#166534">L${lo}</span>`:''}</div>
       <div style="text-align:center">${rep?`<span class="spill" style="background:#FEE2E2;color:#991B1B">🔧${rep}</span>`:''}${stb?`<span class="spill" style="background:#FEF3C7;color:#92400E">⏸${stb}</span>`:''}${run?`<span class="spill" style="background:#DCFCE7;color:#166534">▶${run}</span>`:''}${da?`<span class="spill" style="background:#FEE2E2;color:#991B1B">⚠${da}</span>`:''}${al?`<span class="spill" style="background:#FEF3C7;color:#92400E">!${al}</span>`:''}${go?`<span class="spill" style="background:#DCFCE7;color:#166534">✓${go}</span>`:''}</div>
