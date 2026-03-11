@@ -968,6 +968,30 @@ window.switchTab=function(t){
 
 // ── DURATION ─────────────────────────────────────
 function durMs(s){return s?Date.now()-new Date(s).getTime():null;}
+function tgtStatus(tgt){
+  if(!tgt)return 'none';
+  const today=new Date();today.setHours(0,0,0,0);
+  const t=new Date(tgt);t.setHours(0,0,0,0);
+  const diff=Math.round((t-today)/(1000*60*60*24));
+  if(diff<0)return 'overdue';
+  if(diff===0)return 'today';
+  if(diff===1)return 'h1';
+  return 'ok';
+}
+function tgtStyle(tgt){
+  const s=tgtStatus(tgt);
+  if(s==='overdue')return 'background:#FEE2E2;border-color:#FCA5A5;color:#991B1B;';
+  if(s==='today')return 'background:#FEF3C7;border-color:#FCD34D;color:#92400E;';
+  if(s==='h1')return 'background:#FEF9C3;border-color:#FDE047;color:#713F12;';
+  return 'border-color:#CBD5E1;';
+}
+function tgtBadge(tgt){
+  const s=tgtStatus(tgt);
+  if(s==='overdue')return '<span style="display:block;font-size:8px;font-weight:700;color:#DC2626;margin-top:1px">⚠ OVERDUE</span>';
+  if(s==='today')return '<span style="display:block;font-size:8px;font-weight:700;color:#D97706;margin-top:1px">⚡ HARI INI</span>';
+  if(s==='h1')return '<span style="display:block;font-size:8px;font-weight:700;color:#B45309;margin-top:1px">⏰ H-1</span>';
+  return '';
+}
 function durTxt(s){
   const ms=durMs(s);if(!ms||ms<0)return '—';
   const d=Math.floor(ms/86400000);
@@ -1103,8 +1127,8 @@ function renderT(){
       <td><div class="ed" style="font-size:10px;font-weight:600;color:#1D4ED8" ${ce} onblur="upd(${idx},'pic',this.innerText)">${row.pic||''}</div></td>
       <td style="text-align:center">
         ${canEdit
-          ? `<input type="date" style="border:1px solid #CBD5E1;border-radius:5px;padding:2px 4px;font-size:9.5px;font-family:Outfit,sans-serif;width:110px" value="${(row.targetFinish||'')+((row.targetFinish||'').length===7?'-01':'')}" onchange="updSel(${idx},'targetFinish',this.value)">`
-          : `<span style="font-size:10px;font-weight:600;color:#475569">${row.targetFinish||'–'}</span>`
+          ? `<input type="date" style="border:1px solid;border-radius:5px;padding:2px 4px;font-size:9.5px;font-family:Outfit,sans-serif;width:110px;${tgtStyle(row.targetFinish)}" value="${(row.targetFinish||'')+((row.targetFinish||'').length===7?'-01':'')}" onchange="updSel(${idx},'targetFinish',this.value)">${tgtBadge(row.targetFinish)}`
+          : `<span style="font-size:10px;font-weight:600;padding:2px 6px;border-radius:4px;${tgtStyle(row.targetFinish)}">${row.targetFinish||'–'}</span>${tgtBadge(row.targetFinish)}`
         }
       </td>
       <td style="text-align:center"><span class="db ${durCls(row.icuStart)}" onclick="${canEdit?`openDM(${idx})`:''}">${durTxt(row.icuStart)}</span>${canEdit?'<div class="ch">set</div>':''}</td>
