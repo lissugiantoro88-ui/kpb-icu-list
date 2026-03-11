@@ -119,6 +119,7 @@ body{font-family:'Outfit',sans-serif;background:#0D1B2A;color:var(--text);min-he
 .lsi{display:flex;align-items:center;gap:5px;font-size:11px;color:#555}
 .lssq{width:11px;height:11px;flex-shrink:0;border-radius:2px}
 .lsdt{width:11px;height:11px;border-radius:50%;flex-shrink:0}
+.lsep{width:1px;min-height:40px;background:#334155;margin:0 8px;align-self:stretch}
 .icudef{flex:3;min-width:200px;background:#FEF2F2;border-left:3px solid var(--red);padding:8px 11px;border-radius:4px;font-size:10.5px;line-height:1.65;color:#374151}
 .icudef strong{color:var(--red)}
 /* TABLE */
@@ -172,7 +173,7 @@ tbody td:last-child{border-right:none}
 .r-Low{background:#DCFCE7;color:#166534;border:1px solid #86EFAC}
 .sq{width:18px;height:18px;border-radius:3px;display:inline-block;cursor:pointer;transition:transform .12s;box-shadow:0 1px 3px rgba(0,0,0,.15)}
 .sq:hover{transform:scale(1.2)}
-.s-danger{background:#DC2626}.s-alert{background:#F59E0B}.s-good{background:#16A34A}
+.s-danger{background:#DC2626}.s-alert{background:#F59E0B}.s-normal{background:#16A34A}
 .pd{width:18px;height:18px;border-radius:50%;display:inline-block;cursor:pointer;transition:transform .12s;box-shadow:0 1px 3px rgba(0,0,0,.15)}
 .pd:hover{transform:scale(1.2)}
 .ch{font-size:8.5px;color:#B0BAC8;margin-top:2px;text-align:center}
@@ -193,7 +194,7 @@ tbody td:last-child{border-right:none}
 .pps{border:1px solid var(--border);background:#fff;border-radius:5px;padding:4px 6px;font-size:11px;cursor:pointer;font-family:'Outfit',sans-serif}
 .ftts{background:var(--navy2);padding:8px 14px;font-size:10.5px;color:rgba(255,255,255,.45);text-align:center;font-weight:500;letter-spacing:.3px}
 /* PANELS */
-.panel{display:none}.panel.on{display:block}
+.panel{display:none}.panel.on{display:block}#pHist.on,#pAdmin.on{background:#F8FAFC;min-height:60vh;border-radius:12px;padding:6px 0}
 .mpanel{display:block}.mpanel.gone{display:none}
 /* HISTORY */
 .hhdr{background:#fff;border-radius:12px;padding:13px 16px;margin-bottom:13px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:9px;box-shadow:var(--sh);border:1px solid var(--border)}
@@ -344,6 +345,18 @@ tbody td:last-child{border-right:none}
   </div>
 </div>
 
+<!-- PROGRESS MODAL -->
+<div class="mbg" id="mProg">
+  <div class="mbox" style="min-width:300px;max-width:380px">
+    <h3 id="mProgTitle" style="margin-bottom:14px">📋 Progress Detail</h3>
+    <div id="mProgFields"></div>
+    <div class="mrow" style="margin-top:16px">
+      <button class="bm bmc" onclick="cm('mProg')">Batal</button>
+      <button class="bm bms" onclick="saveProgress()">Simpan</button>
+    </div>
+  </div>
+</div>
+
 <!-- ONLINE USERS MODAL -->
 <div id="onlineModal" style="display:none;position:fixed;top:48px;right:16px;background:#fff;border-radius:12px;box-shadow:0 8px 32px rgba(0,0,0,.18);z-index:500;min-width:220px;overflow:hidden">
   <div style="background:#1B2A3B;padding:10px 14px;display:flex;justify-content:space-between;align-items:center">
@@ -407,23 +420,37 @@ tbody td:last-child{border-right:none}
       </div>
       <div class="dsec" id="dashSec"></div>
       <div class="legstrip">
-        <div class="lsg"><div class="lst">Risk</div>
+        <div class="lsg">
+          <div class="lst">Risk</div>
           <div class="lsi"><div class="lssq" style="background:#C0392B"></div><b>High</b></div>
           <div class="lsi"><div class="lssq" style="background:#D97706"></div><b>Medium</b></div>
           <div class="lsi"><div class="lssq" style="background:#16A34A"></div><b>Low</b></div>
         </div>
-        <div class="lsg"><div class="lst">Status</div>
-          <div class="lsi"><div class="lssq" style="background:#DC2626"></div>Danger</div>
-          <div class="lsi"><div class="lssq" style="background:#F59E0B"></div>Alert</div>
-          <div class="lsi"><div class="lssq" style="background:#16A34A"></div>Good</div>
+        <div class="lsep"></div>
+        <div class="lsg">
+          <div class="lst">Operasional</div>
+          <div class="lsi"><div class="lssq" style="background:#16A34A"></div>Running</div>
+          <div class="lsi"><div class="lssq" style="background:#DC2626"></div>Repair</div>
+          <div class="lsi"><div class="lssq" style="background:#F59E0B"></div>Standby</div>
         </div>
-        <div class="lsg"><div class="lst">Progress</div>
+        <div class="lsep"></div>
+        <div class="lsg">
+          <div class="lst">Kondisi</div>
+          <div class="lsi"><div class="sq s-danger"></div>Danger</div>
+          <div class="lsi"><div class="sq s-alert"></div>Alert</div>
+          <div class="lsi"><div class="sq s-normal"></div>Normal</div>
+        </div>
+        <div class="lsep"></div>
+        <div class="lsg">
+          <div class="lst">Progress</div>
           <div class="lsi"><div class="lsdt" style="background:#DC2626"></div>Delay</div>
           <div class="lsi"><div class="lsdt" style="background:#F59E0B"></div>Need Support</div>
           <div class="lsi"><div class="lsdt" style="background:#16A34A"></div>On Track</div>
           <div class="lsi"><div class="lsdt" style="background:#1D4ED8"></div>Done</div>
         </div>
-        <div class="lsg"><div class="lst">Durasi Monitor</div>
+        <div class="lsep"></div>
+        <div class="lsg">
+          <div class="lst">Durasi Monitor</div>
           <div class="lsi"><span class="db d-ok">&lt;30hr</span>&nbsp;Normal</div>
           <div class="lsi"><span class="db d-warn">1–6bln</span>&nbsp;Perhatian</div>
           <div class="lsi"><span class="db d-crit">&gt;6bln</span>&nbsp;Kritis</div>
@@ -438,7 +465,7 @@ tbody td:last-child{border-right:none}
             <select class="sf" id="fU" onchange="applyF()" style="max-width:90px"><option value="">— Unit —</option></select>
             <select class="sf" id="fD" onchange="applyF()"><option value="">Semua Disiplin</option><option>Static</option><option>Rotating</option><option>Instrument</option><option>Electrical</option></select>
             <select class="sf" id="fR" onchange="applyF()"><option value="">Semua Risk</option><option>High</option><option>Medium</option><option>Low</option></select>
-            <select class="sf" id="fS" onchange="applyF()"><option value="">Semua Status</option><option value="danger">Danger</option><option value="alert">Alert</option><option value="good">Good</option></select>
+            <select class="sf" id="fS" onchange="applyF()"><option value="">Semua Status</option><optgroup label="Operasional"><option value="op:running">Running</option><option value="op:repair">Repair</option><option value="op:standby">Standby</option></optgroup><optgroup label="Kondisi"><option value="danger">Danger</option><option value="alert">Alert</option><option value="normal">Normal</option></optgroup></select>
             <select class="sf" id="fP" onchange="applyF()"><option value="">Semua Progress</option><option value="delay">Delay</option><option value="need-support">Need Support</option><option value="on-track">On Track</option><option value="done">Done</option></select>
             <select class="sf" id="fICU" onchange="applyF()"><option value="">Semua</option><option value="icu">🔴 ICU Only</option><option value="nonicu">⚪ Non-ICU</option></select><button class="btnadd" onclick="addRow()">+ Tambah</button>
           </div>
@@ -476,8 +503,10 @@ tbody td:last-child{border-right:none}
         </div>
         <div class="ftts">Technical Support – PT Kilang Pertamina Balikpapan</div>
       </div>
-    </div>
+  </div>
 
+  <!-- HISTORY & ADMIN PANELS -->
+  <div style="max-width:1580px;margin:0 auto;padding:18px">
     <!-- HISTORY PANEL -->
     <div id="pHist" class="panel">
       <div class="hhdr">
@@ -516,7 +545,8 @@ tbody td:last-child{border-right:none}
           <div id="umList" style="padding:8px 10px"></div>
         </div>
       </div>
-    </div>
+
+  </div>
 
     <!-- USER MANAGEMENT MODAL -->
     <div class="ummodal" id="umModal">
@@ -592,9 +622,12 @@ let sCol='',sDir=1,curPage=1,perPage=10,mRow=null,editId=null;
 let activeTrend='risk',curUser=null,uProf=null,unsubE=null,unsubS=null;
 
 const rC=['High','Medium','Low'];
-const sC=['danger','alert','good'];
+const sC=['danger','alert','normal'];
 const pC=['delay','need-support','on-track','done'];
-const sL={danger:'Danger',alert:'Alert',good:'Good'};
+const sL={danger:'Danger',alert:'Alert',normal:'Normal'};
+const opC=['running','repair','standby'];
+const opL={running:'Running',repair:'Repair',standby:'Standby'};
+const opColor={running:'#16A34A',repair:'#DC2626',standby:'#F59E0B'};
 const pL={'delay':'Delay','need-support':'Need Support','on-track':'On Track','done':'Done'};
 const pCol={'delay':'#DC2626','need-support':'#F59E0B','on-track':'#16A34A','done':'#1D4ED8'};
 
@@ -606,6 +639,67 @@ function toast(msg,icon='✅'){$('tMsg').textContent=msg;$('tIcon').textContent=
 function om(id){$(id).classList.add('on');}
 function cm(id){$(id).classList.remove('on');}
 window.cm=cm;window.om=om;
+window.showNote=function(i){
+  const row=tData[i];
+  const label={delay:'⚠️ Alasan Delay','need-support':'🆘 Butuh Support','done':'🏁 Selesai'}[row.progress]||'Catatan';
+  alert(label+':\n\n'+(row.progressNote||row.doneDate||'(kosong)'));
+};
+
+let progRow=null;
+window.openProgressModal=function(i){
+  progRow=i;
+  const row=tData[i];
+  const p=row.progress||'on-track';
+  const title={delay:'⚠️ Alasan Delay','need-support':'🆘 Butuh Support','on-track':'✅ On Track','done':'🏁 Selesai'}[p]||'Progress';
+  document.getElementById('mProgTitle').textContent=title;
+  
+  let fields='';
+  // Always show progress selector
+  fields+=`<label style="font-size:11px;font-weight:600;color:#475569;display:block;margin-bottom:4px">Status Progress</label>
+  <select id="mpProg" style="width:100%;padding:7px 10px;border:1px solid #CBD5E1;border-radius:8px;font-size:12px;margin-bottom:12px;font-family:Outfit,sans-serif" onchange="updateProgFields()">
+    <option value="delay"${p==='delay'?' selected':''}>🔴 Delay</option>
+    <option value="need-support"${p==='need-support'?' selected':''}>🟡 Need Support</option>
+    <option value="on-track"${p==='on-track'?' selected':''}>🟢 On Track</option>
+    <option value="done"${p==='done'?' selected':''}>🔵 Done</option>
+  </select>
+  <div id="mpExtra"></div>`;
+  
+  document.getElementById('mProgFields').innerHTML=fields;
+  updateProgFields();
+  om('mProg');
+};
+
+window.updateProgFields=function(){
+  const p=document.getElementById('mpProg')?.value;
+  const row=tData[progRow]||{};
+  let extra='';
+  if(p==='delay'){
+    extra=`<label style="font-size:11px;font-weight:600;color:#475569;display:block;margin-bottom:4px">Alasan Delay</label>
+    <textarea id="mpNote" rows="3" style="width:100%;padding:7px 10px;border:1px solid #FCA5A5;border-radius:8px;font-size:12px;resize:vertical;font-family:Outfit,sans-serif;background:#FEF2F2" placeholder="Jelaskan alasan delay...">${row.progressNote||''}</textarea>`;
+  } else if(p==='need-support'){
+    extra=`<label style="font-size:11px;font-weight:600;color:#475569;display:block;margin-bottom:4px">Support yang Dibutuhkan</label>
+    <textarea id="mpNote" rows="3" style="width:100%;padding:7px 10px;border:1px solid #FCD34D;border-radius:8px;font-size:12px;resize:vertical;font-family:Outfit,sans-serif;background:#FFFBEB" placeholder="Jelaskan support yang dibutuhkan...">${row.progressNote||''}</textarea>`;
+  } else if(p==='done'){
+    extra=`<label style="font-size:11px;font-weight:600;color:#475569;display:block;margin-bottom:4px">Tanggal Selesai</label>
+    <input type="date" id="mpDone" style="width:100%;padding:7px 10px;border:1px solid #86EFAC;border-radius:8px;font-size:12px;font-family:Outfit,sans-serif;background:#F0FDF4" value="${row.doneDate||new Date().toISOString().split('T')[0]}">`;
+  } else {
+    extra=`<div style="padding:10px;background:#F0FDF4;border-radius:8px;font-size:12px;color:#16A34A;text-align:center">✅ Progress berjalan sesuai rencana</div>`;
+  }
+  document.getElementById('mpExtra').innerHTML=extra;
+};
+
+window.saveProgress=async function(){
+  if(progRow===null)return;
+  const p=document.getElementById('mpProg').value;
+  const note=document.getElementById('mpNote')?.value||'';
+  const done=document.getElementById('mpDone')?.value||'';
+  tData[progRow].progress=p;
+  tData[progRow].progressNote=note;
+  tData[progRow].doneDate=done;
+  cm('mProg');
+  await saveRow(tData[progRow]);
+  toast('Progress diperbarui','✅');
+};
 window.toggleOnlineList=function(){
   if(uProf?.role!=='admin'){return;}
   const m=$('onlineModal');
@@ -737,7 +831,7 @@ function startEquipSync(){
 async function saveRow(row){
   setSB('ing','⟳ …');
   const by=uProf?.fullName||curUser?.email||'?';
-  const p={unit:row.unit||'',tag:row.tag||'',disiplin:row.disiplin||'Rotating',risk:row.risk||'Medium',issue:row.issue||'',counter:row.counter||'',condition:row.condition||'',status:row.status||'good',solution:row.solution||'',progressLW:row.progressLW||'',progressTW:row.progressTW||'',progress:row.progress||'on-track',pic:row.pic||'',targetFinish:row.targetFinish||null,isICU:row.isICU||false,icuStart:row.icuStart||null,updatedBy:by,updatedAt:serverTimestamp()};
+  const p={unit:row.unit||'',tag:row.tag||'',disiplin:row.disiplin||'Rotating',risk:row.risk||'Medium',issue:row.issue||'',counter:row.counter||'',condition:row.condition||'',opStatus:row.opStatus||'running',status:row.status||'normal',solution:row.solution||'',progressLW:row.progressLW||'',progressTW:row.progressTW||'',progress:row.progress||'on-track',progressNote:row.progressNote||'',doneDate:row.doneDate||'',pic:row.pic||'',targetFinish:row.targetFinish||null,isICU:row.isICU||false,icuStart:row.icuStart||null,updatedBy:by,updatedAt:serverTimestamp()};
   try{
     if(row.id){await updateDoc(doc(db,'ehm_equipment',row.id),p);}
     else{p.createdBy=by;p.createdAt=serverTimestamp();const r=await addDoc(collection(db,'ehm_equipment'),p);row.id=r.id;}
@@ -839,6 +933,8 @@ function buildPDF(data,title,dateDisp){
   const riskBadge=r=>{const c=r==='High'?'#FEE2E2,#C0392B':r==='Medium'?'#FEF3C7,#D97706':'#DCFCE7,#16A34A';const [bg,fg]=c.split(',');return `<span style="background:${bg};color:${fg};padding:2px 6px;border-radius:4px;font-size:9px;font-weight:700">${r}</span>`;};
   const stDot=s=>{const c=s==='danger'?'#DC2626':s==='alert'?'#F59E0B':'#16A34A';return `<span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:${c}"></span>`;};
   const prDot=p=>{const c=p==='delay'?'#DC2626':p==='need-support'?'#F59E0B':p==='done'?'#1D4ED8':'#16A34A';return `<span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:${c}"></span>`;};
+  const opBadge=op=>{const c={running:'#16A34A',repair:'#DC2626',standby:'#F59E0B'}[op||'running']||'#16A34A';const bg={running:'#F0FDF4',repair:'#FEF2F2',standby:'#FFFBEB'}[op||'running']||'#F0FDF4';const l={running:'Running',repair:'Repair',standby:'Standby'}[op||'running']||'Running';return `<span style="background:${bg};color:${c};padding:2px 5px;border-radius:4px;font-size:9px;font-weight:700">${l}</span>`;};
+  const progNote=r=>{if(r.progress==='done'&&r.doneDate)return `✓ ${r.doneDate}`;if(r.progressNote)return r.progressNote;return '–';};
   const rows=data.map((r,i)=>`<tr style="background:${i%2?'#F8FAFC':'#fff'}">
     <td style="text-align:center;font-weight:700;font-size:10px">${r.unit||''}</td>
     <td style="font-size:9px;font-weight:600;color:#7C3AED">${r.disiplin||''}</td>
@@ -846,10 +942,12 @@ function buildPDF(data,title,dateDisp){
     <td style="text-align:center">${riskBadge(r.risk||'')}</td>
     <td style="font-size:9px">${r.issue||''}<br>${r.condition?'<i style="color:#94A3B8">'+r.condition+'</i>':''}</td>
     <td style="font-size:9px">${r.counter||''}<br>${r.solution?'<i style="color:#94A3B8">'+r.solution+'</i>':''}</td>
-    <td style="text-align:center">${stDot(r.status)}</td>
+    <td style="text-align:center">${opBadge(r.opStatus)}</td>
+    <td style="text-align:center">${stDot(r.status)}<span style="font-size:8px;display:block">${r.status||'normal'}</span></td>
     <td style="font-size:9px">${r.progressLW||'–'}</td>
     <td style="font-size:9px">${r.progressTW||'–'}</td>
-    <td style="text-align:center">${prDot(r.progress)}</td>
+    <td style="text-align:center">${prDot(r.progress)}<span style="font-size:8px;display:block">${r.progress||''}</span></td>
+    <td style="font-size:9px;color:#475569">${progNote(r)}</td>
     <td style="font-size:9px;text-align:center">${r.pic||'–'}</td>
     <td style="font-size:9px;text-align:center">${r.targetFinish||'–'}</td>
     <td style="font-size:9px;text-align:center">${durTxt(r.icuStart)}</td>
@@ -874,12 +972,12 @@ function buildPDF(data,title,dateDisp){
   </div>
   <table>
     <thead><tr>
-      <th style="width:5%">UNIT</th><th style="width:6%">DISIPLIN</th><th style="width:9%">TAG</th>
-      <th style="width:5%">RISK</th><th style="width:13%">ISSUE & CONDITION</th>
-      <th style="width:13%">COUNTER MEASURE</th><th style="width:3%">ST</th>
-      <th style="width:10%">PROG LW</th><th style="width:10%">PROG TW</th>
-      <th style="width:3%">TL</th><th style="width:7%">PIC</th>
-      <th style="width:7%">TARGET</th><th style="width:6%">DURASI</th>
+      <th style="width:5%">UNIT</th><th style="width:6%">DISIPLIN</th><th style="width:8%">TAG</th>
+      <th style="width:4%">RISK</th><th style="width:11%">ISSUE & CONDITION</th>
+      <th style="width:11%">COUNTER MEASURE</th><th style="width:7%">OP.STATUS</th><th style="width:4%">KONDISI</th>
+      <th style="width:8%">PROG LW</th><th style="width:8%">PROG TW</th>
+      <th style="width:4%">TL</th><th style="width:8%">KETERANGAN</th>
+      <th style="width:5%">PIC</th><th style="width:6%">TARGET</th><th style="width:5%">DURASI</th>
     </tr></thead>
     <tbody>${rows}</tbody>
   </table>
@@ -1027,10 +1125,14 @@ function renderDash(){
       kv(c(r=>r.risk==='Medium'),'Medium','#F59E0B','#FFFBEB')+
       kv(c(r=>r.risk==='Low'),'Low','#16A34A','#F0FDF4')
     )+sep+
-    row('Status','🔵','#475569',
-      kv(c(r=>r.status==='danger'),'Danger','#DC2626','#FEF2F2')+
-      kv(c(r=>r.status==='alert'),'Alert','#F59E0B','#FFFBEB')+
-      kv(c(r=>r.status==='good'),'Good','#16A34A','#F0FDF4')
+    row('Operasional','⚙️','#475569',
+      kv(c(r=>(r.opStatus||'running')==='running'),'Running','#16A34A','#F0FDF4')+
+      kv(c(r=>(r.opStatus||'running')==='repair'),'Repair','#DC2626','#FEF2F2')+
+      kv(c(r=>(r.opStatus||'running')==='standby'),'Standby','#F59E0B','#FFFBEB')+
+      `<div style="width:1px;background:#E2E8F0;margin:0 4px"></div>`+
+      kv(c(r=>(r.opStatus||'running')==='running'&&r.status==='danger'),'Danger','#DC2626','#FEF2F2')+
+      kv(c(r=>(r.opStatus||'running')==='running'&&r.status==='alert'),'Alert','#F59E0B','#FFFBEB')+
+      kv(c(r=>(r.opStatus||'running')==='running'&&(r.status||'normal')==='normal'),'Normal','#16A34A','#F0FDF4')
     )+sep+
     row('Progress','📈','#7C3AED',
       kv(c(r=>r.progress==='delay'),'Delay','#DC2626','#FEF2F2')+
@@ -1053,7 +1155,7 @@ function renderDash(){
 function applyF(){
   const q=$('srch').value.toLowerCase();
   const fd=$('fD').value,fr=$('fR').value,fs=$('fS').value,fp=$('fP').value,fi=$('fICU')?$('fICU').value:'',fu=$('fU')?$('fU').value:'';
-  fData=tData.filter((r,i)=>{r._i=i;const txt=[r.unit,r.tag,r.disiplin,r.issue,r.counter,r.condition,r.solution,r.progressLW,r.progressTW,r.pic].join(' ').toLowerCase();return(!q||txt.includes(q))&&(!fd||r.disiplin===fd)&&(!fr||r.risk===fr)&&(!fs||r.status===fs)&&(!fp||r.progress===fp)&&(!fi||(fi==='icu'?r.isICU===true:r.isICU!==true))&&(!fu||r.unit===fu);});
+  fData=tData.filter((r,i)=>{r._i=i;const txt=[r.unit,r.tag,r.disiplin,r.issue,r.counter,r.condition,r.solution,r.progressLW,r.progressTW,r.pic].join(' ').toLowerCase();return(!q||txt.includes(q))&&(!fd||r.disiplin===fd)&&(!fr||r.risk===fr)&&(!fs||(fs.startsWith('op:')?((r.opStatus||'running')===fs.slice(3)):((r.status||'normal')===fs)))&&(!fp||r.progress===fp)&&(!fi||(fi==='icu'?r.isICU===true:r.isICU!==true))&&(!fu||r.unit===fu);});
   if(sCol)fData.sort((a,b)=>{const av=a[sCol]||'',bv=b[sCol]||'';return av<bv?-sDir:av>bv?sDir:0;});
   curPage=1;renderT();
 }
@@ -1120,10 +1222,20 @@ function renderT(){
         <div style="border-top:1px dashed #E2E8F0;margin:3px 0"></div>
         <div class="ed" style="font-size:10px;color:#16A34A" ${ce} onblur="upd(${idx},'solution',this.innerText)">${row.solution||''}</div>
       </td>
-      <td style="text-align:center"><div class="sq s-${row.status}" onclick="${canEdit?`cyS(${idx})`:''}" title="${sL[row.status]||''}"></div><div class="ch">${sL[row.status]||''}</div></td>
+      <td style="text-align:center;min-width:80px">
+        <div style="display:flex;flex-direction:column;align-items:center;gap:4px">
+          <span style="font-size:9px;font-weight:700;padding:2px 8px;border-radius:10px;background:${opColor[row.opStatus||'running']}22;color:${opColor[row.opStatus||'running']};border:1px solid ${opColor[row.opStatus||'running']}55;cursor:${canEdit?'pointer':'default'};white-space:nowrap" onclick="${canEdit?'cyS('+idx+')':''}" title="Klik ubah status operasional">${opL[row.opStatus||'running']}</span>
+          ${(row.opStatus||'running')==='running'?'<div style="display:flex;align-items:center;gap:4px;cursor:'+(canEdit?'pointer':'default')+'" onclick="'+(canEdit?'cyCondition('+idx+')':'')+'" title="Klik ubah kondisi"><div class="sq s-'+(row.status||'normal')+'" style="pointer-events:none"></div><span style="font-size:8.5px;font-weight:600;color:#64748B;pointer-events:none">'+(sL[row.status||'normal']||'')+'</span></div>':''}
+        </div>
+      </td>
       <td><div class="ed" style="font-size:10px;color:#64748B" ${ce} onblur="upd(${idx},'progressLW',this.innerText)">${row.progressLW||''}</div></td>
       <td><div class="ed" style="font-size:10px;font-weight:500" ${ce} onblur="upd(${idx},'progressTW',this.innerText)">${row.progressTW||''}</div></td>
-      <td style="text-align:center"><div class="pd" style="background:${pc}" onclick="${canEdit?`cyP(${idx})`:''}" title="${pL[row.progress]||''}"></div><div class="ch">${pL[row.progress]||''}</div></td>
+      <td style="text-align:center;min-width:60px">
+        <div class="pd" style="background:${pc};cursor:${canEdit?'pointer':'default'}" onclick="${canEdit?`cyP(${idx})`:''}" title="Klik untuk edit progress"></div>
+        <div style="font-size:8.5px;font-weight:600;color:#475569;margin-top:2px">${pL[row.progress]||''}</div>
+        ${(row.progressNote&&row.progress!=='on-track')?`<div style="font-size:7.5px;color:#64748B;margin-top:2px;padding:2px 5px;background:#F8FAFC;border-radius:4px;border:1px solid #E2E8F0;max-width:90px;word-break:break-word;text-align:left;cursor:pointer" onclick="showNote(${idx})" title="Klik lihat detail">📝 ${(row.progressNote||'').substring(0,20)}${(row.progressNote||'').length>20?'…':''}</div>`:''}
+        ${row.doneDate&&row.progress==='done'?`<div style="font-size:7.5px;color:#1D4ED8;font-weight:700;margin-top:2px">✓ ${row.doneDate}</div>`:''}
+      </t></td>
       <td><div class="ed" style="font-size:10px;font-weight:600;color:#1D4ED8" ${ce} onblur="upd(${idx},'pic',this.innerText)">${row.pic||''}</div></td>
       <td style="text-align:center">
         ${canEdit
@@ -1167,12 +1279,15 @@ window.updUnit=updUnit;
 async function updSel(i,f,v){tData[i][f]=v;await saveRow(tData[i]);renderDash();}
 window.updSel=updSel;
 async function cyR(i){tData[i].risk=rC[(rC.indexOf(tData[i].risk)+1)%rC.length];await saveRow(tData[i]);}
-async function cyS(i){tData[i].status=sC[(sC.indexOf(tData[i].status)+1)%sC.length];await saveRow(tData[i]);}
-async function cyP(i){tData[i].progress=pC[(pC.indexOf(tData[i].progress)+1)%pC.length];await saveRow(tData[i]);}
+async function cyS(i){tData[i].opStatus=opC[(opC.indexOf(tData[i].opStatus||'running')+1)%opC.length];await saveRow(tData[i]);}
+function cyP(i){openProgressModal(i);}
 window.upd=upd;window.cyR=cyR;window.cyS=cyS;window.cyP=cyP;
+async function cyCondition(i){if((tData[i].opStatus||'running')!=='running')return;tData[i].status=sC[(sC.indexOf(tData[i].status||'normal')+1)%sC.length];await saveRow(tData[i]);}
+window.cyCondition=cyCondition;
+window.cyP=cyP;
 
 window.addRow=async function(){
-  const r={unit:'052',tag:'Tag-001',disiplin:'Rotating',risk:'Medium',issue:'',counter:'',condition:'',status:'good',solution:'',progressLW:'',progressTW:'',progress:'on-track',pic:'',targetFinish:null,isICU:false,icuStart:new Date().toISOString().split('T')[0]};
+  const r={unit:'052',tag:'Tag-001',disiplin:'Rotating',risk:'Medium',issue:'',counter:'',condition:'',opStatus:'running',status:'normal',solution:'',progressLW:'',progressTW:'',progress:'on-track',progressNote:'',doneDate:'',pic:'',targetFinish:null,isICU:false,icuStart:new Date().toISOString().split('T')[0]};
   await saveRow(r);toast('Baris baru ditambahkan','📝');
 };
 window.delRowUI=async function(id){if(!confirm('Hapus baris ini?'))return;await delEquip(id);};
@@ -1188,14 +1303,15 @@ function renderSnaps(){
   snaps.forEach(s=>{
     const data=JSON.parse(s.dataJson||'[]'),c=fn=>data.filter(fn).length;
     const hi=c(r=>r.risk==='High'),me=c(r=>r.risk==='Medium'),lo=c(r=>r.risk==='Low');
-    const da=c(r=>r.status==='danger'),al=c(r=>r.status==='alert'),go=c(r=>r.status==='good');
+    const da=c(r=>r.status==='danger'),al=c(r=>r.status==='alert'),go=c(r=>(r.status||'normal')==='normal');
+    const run=c(r=>(r.opStatus||'running')==='running'),rep=c(r=>r.opStatus==='repair'),stb=c(r=>r.opStatus==='standby');
     const de=c(r=>r.progress==='delay'),ns=c(r=>r.progress==='need-support'),ot=c(r=>r.progress==='on-track'),dn=c(r=>r.progress==='done');
     html+=`<div class="snrow">
       <div style="display:flex;align-items:center;gap:4px;font-size:9.5px;color:var(--muted)"><div class="sndot"></div>${s.lbl||'–'}</div>
       <div style="font-size:11.5px;font-weight:700;padding:0 7px">${s.title}<span style="font-size:9px;color:var(--muted);font-weight:400;margin-left:3px">– ${s.savedBy||'?'}</span></div>
       <div style="text-align:center"><span class="spill" style="background:#DBEAFE;color:#1D4ED8">${data.length}</span></div>
       <div style="text-align:center">${hi?`<span class="spill" style="background:#FEE2E2;color:#991B1B">H${hi}</span>`:''}${me?`<span class="spill" style="background:#FEF3C7;color:#92400E">M${me}</span>`:''}${lo?`<span class="spill" style="background:#DCFCE7;color:#166534">L${lo}</span>`:''}</div>
-      <div style="text-align:center">${da?`<span class="spill" style="background:#FEE2E2;color:#991B1B">■${da}</span>`:''}${al?`<span class="spill" style="background:#FEF3C7;color:#92400E">■${al}</span>`:''}${go?`<span class="spill" style="background:#DCFCE7;color:#166534">■${go}</span>`:''}</div>
+      <div style="text-align:center">${rep?`<span class="spill" style="background:#FEE2E2;color:#991B1B">🔧${rep}</span>`:''}${stb?`<span class="spill" style="background:#FEF3C7;color:#92400E">⏸${stb}</span>`:''}${run?`<span class="spill" style="background:#DCFCE7;color:#166534">▶${run}</span>`:''}${da?`<span class="spill" style="background:#FEE2E2;color:#991B1B">⚠${da}</span>`:''}${al?`<span class="spill" style="background:#FEF3C7;color:#92400E">!${al}</span>`:''}${go?`<span class="spill" style="background:#DCFCE7;color:#166534">✓${go}</span>`:''}</div>
       <div style="text-align:center">${de?`<span class="spill" style="background:#FEE2E2;color:#991B1B">●${de}</span>`:''}${ns?`<span class="spill" style="background:#FEF3C7;color:#92400E">●${ns}</span>`:''}${ot?`<span class="spill" style="background:#DCFCE7;color:#166534">●${ot}</span>`:''}${dn?`<span class="spill" style="background:#DBEAFE;color:#1D4ED8">●${dn}</span>`:''}</div>
       <div style="text-align:center"><button class="sab sab-v" onclick="restoreSnap('${s.id}')" title="Lihat">👁</button></div>
       <div style="text-align:center"><button class="sab sab-p" onclick="exportSnapPPT('${s.id}')" title="PPT">📊</button></div>
@@ -1218,7 +1334,7 @@ function renderTrend(){
   sn.forEach(s=>{const d=toD(s);const mk=allSameDay?(d.getFullYear()+'-'+(d.getMonth()+1)+'-'+d.getDate()):(d.getFullYear()+'-'+(d.getMonth()+1));if(!byM[mk])byM[mk]=[];byM[mk].push(s);});
   let sd=[];
   if(activeTrend==='risk')sd=[{l:'High',c:'#C0392B',f:d=>d.filter(r=>r.risk==='High').length},{l:'Medium',c:'#D97706',f:d=>d.filter(r=>r.risk==='Medium').length},{l:'Low',c:'#16A34A',f:d=>d.filter(r=>r.risk==='Low').length}];
-  else if(activeTrend==='status')sd=[{l:'Danger',c:'#DC2626',f:d=>d.filter(r=>r.status==='danger').length},{l:'Alert',c:'#F59E0B',f:d=>d.filter(r=>r.status==='alert').length},{l:'Good',c:'#16A34A',f:d=>d.filter(r=>r.status==='good').length}];
+  else if(activeTrend==='status')sd=[{l:'Running',c:'#16A34A',f:d=>d.filter(r=>(r.opStatus||'running')==='running').length},{l:'Repair',c:'#DC2626',f:d=>d.filter(r=>r.opStatus==='repair').length},{l:'Standby',c:'#F59E0B',f:d=>d.filter(r=>r.opStatus==='standby').length},{l:'Danger',c:'#FF6B6B',f:d=>d.filter(r=>r.status==='danger').length},{l:'Alert',c:'#FFA500',f:d=>d.filter(r=>r.status==='alert').length},{l:'Normal',c:'#52B788',f:d=>d.filter(r=>(r.status||'normal')==='normal').length}];
   else sd=[{l:'Delay',c:'#DC2626',f:d=>d.filter(r=>r.progress==='delay').length},{l:'Need Support',c:'#F59E0B',f:d=>d.filter(r=>r.progress==='need-support').length},{l:'On Track',c:'#16A34A',f:d=>d.filter(r=>r.progress==='on-track').length},{l:'Done',c:'#1D4ED8',f:d=>d.filter(r=>r.progress==='done').length}];
   const mk=Object.keys(byM).sort();
   let html='<div style="overflow-x:auto"><div style="display:flex;gap:0;min-width:'+Math.max(480,mk.length*185)+'px">';
@@ -1294,20 +1410,34 @@ document.getElementById('logoImg').src,x:1.45,y:1.6,w:1.5,h:.52});}catch(e){}
   const s2=pptx.addSlide();s2.background={color:CL};
   s2.addShape(pptx.shapes.RECTANGLE,{x:0,y:0,w:W,h:.68,fill:{color:CN}});s2.addShape(pptx.shapes.RECTANGLE,{x:0,y:0,w:.18,h:.68,fill:{color:CR}});
   s2.addText('RINGKASAN DASHBOARD',{x:.36,y:.07,w:12,h:.55,fontFace:'Calibri',fontSize:18,bold:true,color:CW,charSpacing:2});
-  const cn={tot:data.length,hi:data.filter(r=>r.risk==='High').length,me:data.filter(r=>r.risk==='Medium').length,lo:data.filter(r=>r.risk==='Low').length,da:data.filter(r=>r.status==='danger').length,al:data.filter(r=>r.status==='alert').length,go:data.filter(r=>r.status==='good').length,de:data.filter(r=>r.progress==='delay').length,ns:data.filter(r=>r.progress==='need-support').length,ot:data.filter(r=>r.progress==='on-track').length,dn:data.filter(r=>r.progress==='done').length};
-  const dc=[{l:'Total ICU',v:cn.tot,col:'1D4ED8',bg:'EFF6FF'},{l:'High Risk',v:cn.hi,col:'C0392B',bg:'FEE2E2'},{l:'Medium',v:cn.me,col:'D97706',bg:'FEF3C7'},{l:'Low Risk',v:cn.lo,col:'16A34A',bg:'DCFCE7'},{l:'Danger',v:cn.da,col:'C0392B',bg:'FEE2E2'},{l:'Alert',v:cn.al,col:'F59E0B',bg:'FEF3C7'},{l:'Good',v:cn.go,col:'16A34A',bg:'DCFCE7'},{l:'Delay',v:cn.de,col:'C0392B',bg:'FEE2E2'},{l:'Need Sup.',v:cn.ns,col:'F59E0B',bg:'FEF3C7'},{l:'On Track',v:cn.ot,col:'16A34A',bg:'DCFCE7'},{l:'Done',v:cn.dn,col:'1D4ED8',bg:'EFF6FF'}];
+  const cn={tot:data.length,hi:data.filter(r=>r.risk==='High').length,me:data.filter(r=>r.risk==='Medium').length,lo:data.filter(r=>r.risk==='Low').length,run:data.filter(r=>(r.opStatus||'running')==='running').length,rep:data.filter(r=>r.opStatus==='repair').length,stb:data.filter(r=>r.opStatus==='standby').length,da:data.filter(r=>r.status==='danger').length,al:data.filter(r=>r.status==='alert').length,no:data.filter(r=>(r.status||'normal')==='normal').length,de:data.filter(r=>r.progress==='delay').length,ns:data.filter(r=>r.progress==='need-support').length,ot:data.filter(r=>r.progress==='on-track').length,dn:data.filter(r=>r.progress==='done').length};
+  const dc=[{l:'Total',v:cn.tot,col:'1D4ED8',bg:'EFF6FF'},{l:'High Risk',v:cn.hi,col:'C0392B',bg:'FEE2E2'},{l:'Medium',v:cn.me,col:'D97706',bg:'FEF3C7'},{l:'Low Risk',v:cn.lo,col:'16A34A',bg:'DCFCE7'},{l:'Running',v:cn.run,col:'16A34A',bg:'DCFCE7'},{l:'Repair',v:cn.rep,col:'C0392B',bg:'FEE2E2'},{l:'Standby',v:cn.stb,col:'F59E0B',bg:'FEF3C7'},{l:'Danger',v:cn.da,col:'C0392B',bg:'FEE2E2'},{l:'Alert',v:cn.al,col:'F59E0B',bg:'FEF3C7'},{l:'Normal',v:cn.no,col:'16A34A',bg:'DCFCE7'},{l:'Delay',v:cn.de,col:'C0392B',bg:'FEE2E2'},{l:'Need Sup.',v:cn.ns,col:'F59E0B',bg:'FEF3C7'},{l:'On Track',v:cn.ot,col:'16A34A',bg:'DCFCE7'},{l:'Done',v:cn.dn,col:'1D4ED8',bg:'EFF6FF'}];
   const cw=(W-.24-.03*10)/11;
   dc.forEach((c,i)=>{const cx=.12+i*(cw+.03);s2.addShape(pptx.shapes.RECTANGLE,{x:cx,y:.8,w:cw,h:1.9,fill:{color:c.bg},shadow:shd()});s2.addShape(pptx.shapes.RECTANGLE,{x:cx,y:.8,w:cw,h:.08,fill:{color:c.col}});s2.addText(String(c.v),{x:cx,y:.88,w:cw,h:.9,fontFace:'Calibri',fontSize:40,bold:true,color:c.col,align:'center'});s2.addText(c.l,{x:cx+.02,y:1.86,w:cw-.04,h:.68,fontFace:'Calibri',fontSize:9.5,color:CN2,align:'center',bold:true});});
   s2.addShape(pptx.shapes.RECTANGLE,{x:0,y:H-.26,w:W,h:.26,fill:{color:CN}});
   s2.addText('Technical Support – '+unitName+' | '+dateDisp,{x:.3,y:H-.24,w:12.7,h:.2,fontFace:'Calibri',fontSize:8,color:'AAAAAA',align:'right'});
   // Data slides
-  const ROWS=6,chunks=[];for(let i=0;i<data.length;i+=ROWS)chunks.push(data.slice(i,i+ROWS));
+  const ROWS=5,chunks=[];for(let i=0;i<data.length;i+=ROWS)chunks.push(data.slice(i,i+ROWS));
   chunks.forEach((chunk,ci)=>{
     const sd=pptx.addSlide();sd.background={color:CL};
     sd.addShape(pptx.shapes.RECTANGLE,{x:0,y:0,w:W,h:.68,fill:{color:CN}});sd.addShape(pptx.shapes.RECTANGLE,{x:0,y:0,w:.18,h:.68,fill:{color:CR}});
     sd.addText('EQUIPMENT HIGHLIGHT LIST'+(chunks.length>1?` (${ci+1}/${chunks.length})`:''),{x:.36,y:.07,w:10,h:.55,fontFace:'Calibri',fontSize:17,bold:true,color:CW,charSpacing:2});
     sd.addText(dateDisp,{x:9.5,y:.2,w:3.6,h:.35,fontFace:'Calibri',fontSize:11,color:'AAAAAA',align:'right'});
-    const cols=[{l:'UNIT',x:.12,w:.55},{l:'DISIPLIN',x:.67,w:.75},{l:'TAG',x:1.42,w:1.2},{l:'RISK',x:2.62,w:.65},{l:'ISSUE & CONDITION',x:3.27,w:2.3},{l:'COUNTER MEASURE',x:5.57,w:2.1},{l:'STATUS',x:7.67,w:.58},{l:'PROG LW',x:8.25,w:1.35},{l:'PROG TW',x:9.60,w:1.35},{l:'TL',x:10.95,w:.45},{l:'PIC',x:11.40,w:.88},{l:'TARGET',x:12.28,w:.9}];
+    const cols=[
+      {l:'UNIT',    x:.12, w:.48},
+      {l:'DISIPLIN',x:.60, w:.62},
+      {l:'TAG',     x:1.22,w:1.15},
+      {l:'RISK',    x:2.37,w:.60},
+      {l:'ISSUE & CONDITION', x:2.97,w:2.30},
+      {l:'COUNTER MEASURE',   x:5.27,w:2.05},
+      {l:'STATUS',  x:7.32,w:.85},
+      {l:'PROG LW', x:8.17,w:1.10},
+      {l:'PROG TW', x:9.27,w:1.10},
+      {l:'TL',      x:10.37,w:.60},
+      {l:'KETERANGAN',x:10.97,w:.95},
+      {l:'PIC',     x:11.92,w:.63},
+      {l:'TARGET',  x:12.55,w:.63},
+    ];
     const hY=.8,hH=.34;
     sd.addShape(pptx.shapes.RECTANGLE,{x:.12,y:hY,w:W-.24,h:hH,fill:{color:CN2}});
     cols.forEach(c=>sd.addText(c.l,{x:c.x+.02,y:hY+.03,w:c.w-.04,h:hH-.06,fontFace:'Calibri',fontSize:7.5,bold:true,color:CW,align:'center',valign:'middle'}));
@@ -1333,21 +1463,39 @@ document.getElementById('logoImg').src,x:1.45,y:1.6,w:1.5,h:.52});}catch(e){}
       sd.addText((row.issue||'')+(row.condition?'\n['+row.condition+']':''),{x:cols[4].x+.02,y:ry+.03,w:cols[4].w-.04,h:rowH-.08,...cs,fontSize:7});
       // Col 5: COUNTER MEASURE
       sd.addText((row.counter||'')+(row.solution?'\n'+row.solution:''),{x:cols[5].x+.02,y:ry+.03,w:cols[5].w-.04,h:rowH-.08,...cs,fontSize:7});
-      // Col 6: STATUS dot
-      const sc2=row.status==='danger'?'C0392B':row.status==='alert'?'F59E0B':'16A34A';
-      sd.addShape(pptx.shapes.OVAL,{x:cols[6].x+.19,y:ry+.1,w:.18,h:.18,fill:{color:sc2}});
+      // Col 6: STATUS - opStatus badge, kondisi dot ONLY if running
+      const opC2={running:'16A34A',repair:'C0392B',standby:'F59E0B'}[row.opStatus||'running']||'16A34A';
+      const opBg2={running:'DCFCE7',repair:'FEE2E2',standby:'FEF3C7'}[row.opStatus||'running']||'DCFCE7';
+      const opLbl=(row.opStatus||'running').charAt(0).toUpperCase()+(row.opStatus||'running').slice(1);
+      const stY=ry+.06;
+      sd.addShape(pptx.shapes.RECTANGLE,{x:cols[6].x+.04,y:stY,w:cols[6].w-.08,h:.22,fill:{color:opBg2},line:{color:opC2,width:.5},rounding:0.1});
+      sd.addText(opLbl,{x:cols[6].x+.04,y:stY,w:cols[6].w-.08,h:.22,fontFace:'Calibri',fontSize:7,bold:true,color:opC2,align:'center',valign:'middle'});
+      if((row.opStatus||'running')==='running'){
+        const sc2=row.status==='danger'?'C0392B':row.status==='alert'?'F59E0B':'16A34A';
+        const scBg2=row.status==='danger'?'FEE2E2':row.status==='alert'?'FEF3C7':'DCFCE7';
+        const sLbl2=row.status==='danger'?'Danger':row.status==='alert'?'Alert':'Normal';
+        sd.addShape(pptx.shapes.RECTANGLE,{x:cols[6].x+.04,y:stY+.27,w:cols[6].w-.08,h:.18,fill:{color:scBg2},line:{color:sc2,width:.4},rounding:0.1});
+        sd.addText(sLbl2,{x:cols[6].x+.04,y:stY+.27,w:cols[6].w-.08,h:.18,fontFace:'Calibri',fontSize:6,bold:true,color:sc2,align:'center',valign:'middle'});
+      }
       // Col 7: PROG LW
       sd.addText(row.progressLW||'–',{x:cols[7].x+.02,y:ry+.03,w:cols[7].w-.04,h:rowH-.08,...cs,fontSize:7});
       // Col 8: PROG TW
       sd.addText(row.progressTW||'–',{x:cols[8].x+.02,y:ry+.03,w:cols[8].w-.04,h:rowH-.08,...cs,fontSize:7});
-      // Col 9: TL (progress)
+      // Col 9: TL progress dot + label
       const pc2=row.progress==='delay'?'C0392B':row.progress==='need-support'?'F59E0B':row.progress==='done'?'1D4ED8':'16A34A';
-      sd.addShape(pptx.shapes.OVAL,{x:cols[9].x+.12,y:ry+.1,w:.18,h:.18,fill:{color:pc2}});
-      // Col 10: PIC
-      sd.addText(row.pic||'–',{x:cols[10].x+.02,y:ry+.03,w:cols[10].w-.04,h:rowH-.08,...cs,fontSize:7,align:'center'});
-      // Col 11: TARGET
+      const pcBg2=row.progress==='delay'?'FEE2E2':row.progress==='need-support'?'FEF3C7':row.progress==='done'?'EFF6FF':'DCFCE7';
+      const pLbl2={'delay':'Delay','need-support':'Supp','on-track':'On Track','done':'Done'}[row.progress]||'';
+      sd.addShape(pptx.shapes.OVAL,{x:cols[9].x+(.60-.16)/2,y:ry+.08,w:.18,h:.18,fill:{color:pc2}});
+      sd.addText(pLbl2,{x:cols[9].x,y:ry+.29,w:cols[9].w,h:.18,fontFace:'Calibri',fontSize:6,color:pc2,bold:true,align:'center',valign:'middle'});
+      // Col 10: KETERANGAN (note/doneDate)
+      const pNote2=row.progress==='done'&&row.doneDate?'✓ '+row.doneDate:(row.progressNote||'–');
+      sd.addText(pNote2,{x:cols[10].x+.02,y:ry+.03,w:cols[10].w-.04,h:rowH-.08,fontFace:'Calibri',fontSize:6.5,color:'475569',valign:'top',wrap:true});
+      // Col 11: PIC
+      sd.addText(row.pic||'–',{x:cols[11].x+.02,y:ry+.03,w:cols[11].w-.04,h:rowH-.08,...cs,fontSize:7,align:'center'});
+      // Col 12: TARGET (with overdue highlight)
       const tgt=row.targetFinish?row.targetFinish.substring(0,10):'–';
-      sd.addText(tgt,{x:cols[11].x+.02,y:ry+.03,w:cols[11].w-.04,h:rowH-.08,...cs,fontSize:7,align:'center'});
+      const tgtOvd=row.targetFinish&&new Date(row.targetFinish)<new Date()?'C0392B':CN;
+      sd.addText(tgt,{x:cols[12].x+.02,y:ry+.03,w:cols[12].w-.04,h:rowH-.08,...cs,fontSize:7,align:'center',color:tgtOvd});
       sd.addShape(pptx.shapes.LINE,{x:.12,y:ry+rowH-.02,w:W-.24,h:0,line:{color:'E2E8F0',width:.5}});
     });
     sd.addShape(pptx.shapes.RECTANGLE,{x:0,y:H-.26,w:W,h:.26,fill:{color:CN}});
