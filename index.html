@@ -366,6 +366,9 @@ tbody td:last-child{border-right:none}
   <div id="onlineList" style="padding:8px 0;max-height:260px;overflow-y:auto">
     <p style="padding:10px 14px;color:#94A3B8;font-size:12px">Memuat...</p>
   </div>
+  <div class="isadm" style="padding:6px 10px;border-top:1px solid #F1F5F9;display:none">
+    <button onclick="clearStaleOnline()" style="width:100%;background:#FEF2F2;color:#C0392B;border:1px solid #FECACA;border-radius:6px;padding:5px;font-size:11px;font-weight:600;cursor:pointer">🗑 Bersihkan user tidak aktif</button>
+  </div>
 </div>
 <!-- PENDING -->
 <div id="pendingPage">
@@ -593,7 +596,7 @@ tbody td:last-child{border-right:none}
 import{initializeApp}from"https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
 import{getAuth,createUserWithEmailAndPassword,signInWithEmailAndPassword,signOut,onAuthStateChanged}from"https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
 import{getFirestore,collection,doc,getDoc,setDoc,addDoc,updateDoc,deleteDoc,onSnapshot,query,orderBy,serverTimestamp,writeBatch,getDocs}from"https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
-import{getDatabase,ref,set,onValue,onDisconnect,serverTimestamp as rtTS}from"https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+import{getDatabase,ref,set,get,onValue,onDisconnect,serverTimestamp as rtTS}from"https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
 
 
 document.getElementById('logoImg').src = 'data:image/jpeg;base64,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';
@@ -771,7 +774,16 @@ window.doRegister=async function(){
   }catch(ex){err.textContent=ex.message;err.classList.add('on');}
   btn.disabled=false;btn.textContent='Kirim Permintaan Akses';
 };
-window.doLogout=async function(){await signOut(auth);location.reload();};
+window.doLogout=async function(){
+  try{
+    if(curUser){
+      const pRef=ref(rtdb,'online/'+curUser.uid);
+      await set(pRef,null);  // explicitly remove from online list
+    }
+  }catch(e){}
+  await signOut(auth);
+  location.reload();
+};
 
 async function routeUser(user){
   curUser=user;
@@ -844,37 +856,97 @@ async function delEquip(id){
 
 // ── ONLINE PRESENCE ──────────────────────────────
 function startOnline(){
-  const uid=curUser.uid,name=uProf?.fullName||uProf?.fullname||curUser.email;
+  const uid=curUser.uid;
+  const name=uProf?.fullName||uProf?.fullname||curUser.email;
   const pRef=ref(rtdb,'online/'+uid);
   const connRef=ref(rtdb,'.info/connected');
-  onValue(connRef,snap=>{
+  let presenceSet=false;
+
+  // ── Presence: set on connect, remove on disconnect ──
+  onValue(connRef,async snap=>{
     if(snap.val()===true){
-      onDisconnect(pRef).remove();
-      set(pRef,{name,ts:rtTS()});
+      // Set onDisconnect FIRST, then set presence
+      await onDisconnect(pRef).remove();
+      await set(pRef,{name,ts:Date.now()});
+      presenceSet=true;
     } else {
-      // remove on disconnect
+      presenceSet=false;
     }
   });
-  // Always listen to online count
+
+  // ── Heartbeat every 60s to keep presence fresh ──
+  const heartbeat=setInterval(async()=>{
+    if(presenceSet){
+      try{ await set(pRef,{name,ts:Date.now()}); }catch(e){}
+    }
+  },60000);
+
+  // ── Clean up on page unload / tab close ──
+  const cleanup=async()=>{
+    presenceSet=false;
+    clearInterval(heartbeat);
+    try{ await set(pRef,null); }catch(e){}
+  };
+  window.addEventListener('beforeunload',cleanup);
+  window.addEventListener('pagehide',cleanup);
+
+  // ── Listen to online list (filter stale > 5 min) ──
+  // Show admin cleanup button
+  const cleanBtn=document.querySelector('#onlineModal .isadm');
+  if(cleanBtn&&(uProf?.role||'').toLowerCase()==='admin'){
+    cleanBtn.style.display='block';
+  }
   onValue(ref(rtdb,'online'),snap=>{
     try{
-      const users=snap.exists()?snap.val():{};
-      const cnt=Object.keys(users).length;
+      const raw=snap.exists()?snap.val():{};
+      const now=Date.now();
+      // Filter out stale entries (not updated in last 5 minutes)
+      const users=Object.values(raw).filter(u=>!u.ts||(now-u.ts)<300000);
+      const cnt=users.length;
       $('onlineCnt').textContent='● '+cnt+' online';
       $('onlineCnt').style.color=cnt>0?'#16A34A':'#64748B';
-      // Update online list
       const list=$('onlineList');
       if(list){
-        if(!cnt){list.innerHTML='<p style="padding:10px 14px;color:#94A3B8;font-size:12px">Tidak ada user online.</p>';return;}
-        list.innerHTML=Object.values(users).map(u=>`
-          <div style="display:flex;align-items:center;gap:10px;padding:8px 14px;border-bottom:1px solid #F1F5F9">
+        if(!cnt){
+          list.innerHTML='<p style="padding:10px 14px;color:#94A3B8;font-size:12px">Tidak ada user online.</p>';
+          return;
+        }
+        list.innerHTML=users.map(u=>{
+          const minsAgo=u.ts?Math.floor((now-u.ts)/60000):null;
+          const timeStr=minsAgo===0?'baru saja':minsAgo?minsAgo+' mnt lalu':'';
+          return `<div style="display:flex;align-items:center;gap:10px;padding:8px 14px;border-bottom:1px solid #F1F5F9">
             <div style="width:8px;height:8px;border-radius:50%;background:#16A34A;flex-shrink:0"></div>
-            <span style="font-size:12px;font-weight:600;color:#1E293B">${u.name||'Unknown'}</span>
-          </div>`).join('');
+            <div>
+              <span style="font-size:12px;font-weight:600;color:#1E293B">${u.name||'Unknown'}</span>
+              ${timeStr?`<span style="font-size:10px;color:#94A3B8;margin-left:6px">${timeStr}</span>`:''}
+            </div>
+          </div>`;
+        }).join('');
       }
     }catch(e){$('onlineCnt').textContent='● 1 online';}
   },err=>{$('onlineCnt').textContent='● –';});
 }
+
+// ── CLEAR STALE ONLINE ──────────────────────────
+window.clearStaleOnline=async function(){
+  try{
+    const snap=await get(ref(rtdb,'online'));
+    if(!snap.exists())return;
+    const raw=snap.val();
+    const now=Date.now();
+    const batch=[];
+    Object.entries(raw).forEach(([uid,u])=>{
+      // Remove if stale > 5 minutes
+      if(!u.ts||(now-u.ts)>300000){
+        batch.push(set(ref(rtdb,'online/'+uid),null));
+      }
+    });
+    if(!batch.length){toast('Tidak ada user stale','ℹ️');return;}
+    await Promise.all(batch);
+    toast(batch.length+' user stale dihapus','✅');
+  }catch(e){toast('Gagal: '+e.message,'❌');}
+};
+
 
 // ── SNAPSHOTS ────────────────────────────────────
 function startSnapSync(){
