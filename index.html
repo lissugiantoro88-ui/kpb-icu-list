@@ -391,13 +391,14 @@ tbody td:last-child{border-right:none}
     <div class="tb-r">
       <div class="uchip"><span id="uName">–</span><span class="rbadge" id="uRole">–</span></div>
       <button class="tbbtn tbbtn-e" id="expBtn" onclick="doExport()">📊 Export PPT</button>
+      <button class="tbbtn" id="expPdfBtn" onclick="doExportPDF()" style="background:#DC2626;color:#fff;border-color:#DC2626">📄 Export PDF</button>
       <button class="tbbtn tbbtn-o" onclick="doLogout()">⏏ Keluar</button>
     </div>
   </div>
   <div class="tabs">
     <button class="tabbt on" id="t0" onclick="switchTab('main')">📋 Data Equipment</button>
     <button class="tabbt" id="t1" onclick="switchTab('hist')">🕐 History &amp; Trend</button>
-    <button class="tabbt adm" id="t2" onclick="switchTab('admin')">⚙️ Admin</button>
+    <button class="tabbt adm" id="t2" onclick="switchTab('admin')">⚙️ Admin<span id="pendingBadge" style="display:none;margin-left:5px;background:#DC2626;color:#fff;font-size:9px;font-weight:700;padding:1px 5px;border-radius:10px;vertical-align:middle">0</span></button>
   </div>
   <!-- MODALS -->
   <div class="mbg" id="mDate"><div class="mbox">
@@ -483,8 +484,8 @@ tbody td:last-child{border-right:none}
               <th>Issue &amp; Condition</th>
               <th>Counter Measure &amp; Solution</th>
               <th onclick="srtBy('status')" data-c="status" style="text-align:center">Status <span class="si">⇅</span></th>
-              <th>Progress Last Week</th>
-              <th>Progress This Week</th>
+              <th style="min-width:140px">Progress Sebelumnya</th>
+              <th style="min-width:140px">Progress Saat Ini</th>
               <th onclick="srtBy('progress')" data-c="progress" style="text-align:center">TL <span class="si">⇅</span></th>
               <th>PIC</th>
               <th onclick="srtBy('targetFinish')" data-c="targetFinish" style="text-align:center">Target <span class="si">⇅</span></th>
@@ -655,6 +656,11 @@ const pL={'delay':'Delay','need-support':'Need Support','on-track':'On Track','d
 const pCol={'delay':'#DC2626','need-support':'#F59E0B','on-track':'#16A34A','done':'#1D4ED8'};
 
 // ── HELPERS ──────────────────────────────────────
+function setSB(state,txt){
+  const el=$('syncBdg');if(!el)return;
+  el.className='sbadge sb-'+state;
+  el.textContent=txt;
+}
 const $=id=>document.getElementById(id);
 function show(id){$(id).style.display='flex';}
 function hide(id){const el=$(id);if(el)el.classList.add('gone');}
@@ -723,43 +729,7 @@ window.saveProgress=async function(){
   await saveRow(tData[progRow]);
   toast('Progress diperbarui','✅');
 };
-window.toggleOnlineList=function(){
-  if(uProf?.role!=='admin'){return;}
-  const m=$('onlineModal');
-  if(!m)return;
-  const isOpen=m.style.display==='block';
-  m.style.display=isOpen?'none':'block';
-  if(!isOpen){
-    // Fresh fetch when opening
-    const list=$('onlineList');
-    list.innerHTML='<p style="padding:10px 14px;color:#94A3B8;font-size:12px">Memuat...</p>';
-    import('https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js').then(({ref:dbRef,get})=>{
-      get(dbRef(rtdb,'online')).then(snap=>{
-        if(!snap.exists()||!Object.keys(snap.val()).length){
-          list.innerHTML='<p style="padding:10px 14px;color:#94A3B8;font-size:12px">Tidak ada user online.</p>';
-          return;
-        }
-        const users=snap.val();
-        list.innerHTML=Object.values(users).map(u=>`
-          <div style="display:flex;align-items:center;gap:10px;padding:8px 14px;border-bottom:1px solid #F1F5F9">
-            <div style="width:8px;height:8px;border-radius:50%;background:#16A34A;flex-shrink:0"></div>
-            <span style="font-size:12px;font-weight:600;color:#1E293B">${u.name||'Unknown'}</span>
-          </div>`).join('');
-      }).catch(e=>{
-        list.innerHTML='<p style="padding:10px 14px;color:#DC2626;font-size:12px">⚠️ Tidak bisa membaca data. Cek RTDB rules.</p>';
-      });
-    });
-  }
-};
-// Close online modal when clicking outside
-document.addEventListener('click',function(e){
-  const m=$('onlineModal');
-  const cnt=$('onlineCnt');
-  if(m&&cnt&&!m.contains(e.target)&&!cnt.contains(e.target)){
-    m.style.display='none';
-  }
-});
-function setSB(type,txt){const b=$('syncBdg');b.textContent=txt;b.className='sbadge '+(type==='ok'?'sb-ok':type==='ing'?'sb-ing':'sb-err');}
+
 
 // ── AUTH ─────────────────────────────────────────
 window.showLTab=function(t){
@@ -844,6 +814,7 @@ async function routeUser(user){
   $('slideDate').value=new Date().toISOString().split('T')[0];
   startEquipSync();
   startOnline();
+  if(displayRole==='admin') startPendingWatch();
 }
 
 onAuthStateChanged(auth,async user=>{
@@ -863,7 +834,7 @@ function startEquipSync(){
 async function saveRow(row){
   setSB('ing','⟳ …');
   const by=uProf?.fullName||curUser?.email||'?';
-  const p={unit:row.unit||'',tag:row.tag||'',disiplin:row.disiplin||'Rotating',risk:row.risk||'Medium',issue:row.issue||'',counter:row.counter||'',condition:row.condition||'',opStatus:row.opStatus||'running',status:row.status||'normal',solution:row.solution||'',progressLW:row.progressLW||'',progressTW:row.progressTW||'',progress:row.progress||'on-track',progressNote:row.progressNote||'',doneDate:row.doneDate||'',pic:row.pic||'',targetFinish:row.targetFinish||null,isICU:row.isICU||false,icuStart:row.icuStart||null,updatedBy:by,updatedAt:serverTimestamp()};
+  const p={unit:row.unit||'',tag:row.tag||'',disiplin:row.disiplin||'Rotating',risk:row.risk||'Medium',issue:row.issue||'',counter:row.counter||'',condition:row.condition||'',opStatus:row.opStatus||'running',status:row.status||'normal',solution:row.solution||'',progressLW:row.progressLW||'',progressLWDate:row.progressLWDate||'',progressTW:row.progressTW||'',progressTWDate:row.progressTWDate||'',progress:row.progress||'on-track',progressNote:row.progressNote||'',doneDate:row.doneDate||'',pic:row.pic||'',targetFinish:row.targetFinish||null,isICU:row.isICU||false,icuStart:row.icuStart||null,updatedBy:by,updatedAt:serverTimestamp()};
   try{
     if(row.id){
       // Detect changed fields vs current data
@@ -872,8 +843,10 @@ async function saveRow(row){
         unit:'Unit',tag:'Tag',disiplin:'Disiplin',risk:'Risk',
         issue:'Issue',condition:'Condition',counter:'Counter Measure',solution:'Solution',
         opStatus:'Op.Status',status:'Kondisi',
-        progressLW:'Progress LW',progressTW:'Progress TW',
+        
         progress:'TL/Progress',progressNote:'Keterangan',doneDate:'Done Date',
+        progressLW:'Progress Sebelumnya',progressLWDate:'Tgl Progress Sebelumnya',
+        progressTW:'Progress Saat Ini',progressTWDate:'Tgl Progress Saat Ini',
         pic:'PIC',targetFinish:'Target Finish',isICU:'ICU Flag'
       };
       const changes=[];
@@ -908,7 +881,20 @@ async function saveRow(row){
   }catch(e){toast('Gagal simpan: '+e.message,'❌');}
 }
 async function delEquip(id){
-  try{await deleteDoc(doc(db,'ehm_equipment',id));toast('Dihapus','🗑');}
+  try{
+    // Log deletion before deleting
+    const equip=tData.find(r=>r.id===id)||{};
+    const by=uProf?.fullName||curUser?.email||'?';
+    await addDoc(collection(db,'ehm_activity'),{
+      equipId:id,
+      equipLabel:(equip.unit||'')+(equip.tag?' – '+equip.tag:''),
+      changes:[{field:'Status',from:'Ada',to:'DIHAPUS'}],
+      by,byUid:curUser?.uid||'',
+      at:serverTimestamp()
+    });
+    await deleteDoc(doc(db,'ehm_equipment',id));
+    toast('Dihapus','🗑');
+  }
   catch(e){toast('Gagal hapus','❌');}
 }
 
@@ -986,6 +972,12 @@ function startOnline(){
 }
 
 // ── CLEAR STALE ONLINE ──────────────────────────
+window.toggleOnlineList=function(){
+  if(uProf?.role!=='admin')return;
+  const modal=document.getElementById('onlineModal');
+  if(!modal)return;
+  modal.style.display=modal.style.display==='none'?'block':'none';
+};
 window.clearStaleOnline=async function(){
   try{
     const snap=await get(ref(rtdb,'online'));
@@ -1079,8 +1071,8 @@ function buildPDF(data,title,dateDisp){
     <td style="font-size:9px">${r.counter||''}<br>${r.solution?'<i style="color:#94A3B8">'+r.solution+'</i>':''}</td>
     <td style="text-align:center">${opBadge(r.opStatus)}</td>
     <td style="text-align:center">${stDot(r.status)}<span style="font-size:8px;display:block">${r.status||'normal'}</span></td>
-    <td style="font-size:9px">${r.progressLW||'–'}</td>
-    <td style="font-size:9px">${r.progressTW||'–'}</td>
+    <td style="font-size:9px;color:#64748B">${r.progressLW||'–'}${r.progressLWDate?'<br><span style="font-size:8px;color:#94A3B8">'+new Date(r.progressLWDate).toLocaleDateString('id-ID',{day:'numeric',month:'short',year:'2-digit'})+'</span>':''}</td>
+    <td style="font-size:9px;font-weight:500">${r.progressTW||'–'}${r.progressTWDate?'<br><span style="font-size:8px;color:#94A3B8">'+new Date(r.progressTWDate).toLocaleDateString('id-ID',{day:'numeric',month:'short',year:'2-digit'})+'</span>':''}</td>
     <td style="text-align:center">${prDot(r.progress)}<span style="font-size:8px;display:block">${r.progress||''}</span></td>
     <td style="font-size:9px;color:#475569">${progNote(r)}</td>
     <td style="font-size:9px;text-align:center">${r.pic||'–'}</td>
@@ -1100,7 +1092,13 @@ function buildPDF(data,title,dateDisp){
     .hdr{display:flex;justify-content:space-between;align-items:flex-end;margin-bottom:10px;padding-bottom:8px;border-bottom:3px solid #C0392B}
     .ftr{margin-top:8px;font-size:8px;color:#94A3B8;text-align:right;border-top:1px solid #E2E8F0;padding-top:6px}
     @media print{.hdr,.ftr{page-break-inside:avoid}}
-  </style></head><body>
+  
+  @keyframes pulse-badge {
+    0%,100%{transform:scale(1);opacity:1}
+    50%{transform:scale(1.2);opacity:.85}
+  }
+  #pendingBadge{animation:pulse-badge 1.6s ease-in-out infinite;}
+</style></head><body>
   <div class="hdr">
     <div><h1>${title}</h1><p>Equipment Health Monitoring – PT Kilang Pertamina Balikpapan</p></div>
     <div style="text-align:right;font-size:10px;color:#64748B">${dateDisp}<br><b>${data.length} Equipment</b></div>
@@ -1110,7 +1108,7 @@ function buildPDF(data,title,dateDisp){
       <th style="width:5%">UNIT</th><th style="width:6%">DISIPLIN</th><th style="width:8%">TAG</th>
       <th style="width:4%">RISK</th><th style="width:11%">ISSUE & CONDITION</th>
       <th style="width:11%">COUNTER MEASURE</th><th style="width:7%">OP.STATUS</th><th style="width:4%">KONDISI</th>
-      <th style="width:8%">PROG LW</th><th style="width:8%">PROG TW</th>
+      <th style="width:9%">SEBELUMNYA</th><th style="width:9%">SAAT INI</th>
       <th style="width:4%">TL</th><th style="width:8%">KETERANGAN</th>
       <th style="width:5%">PIC</th><th style="width:6%">TARGET</th><th style="width:5%">DURASI</th>
     </tr></thead>
@@ -1389,10 +1387,27 @@ function renderDash(){
       kv(c(r=>r.progress==='on-track'),'On Track','#16A34A','#F0FDF4','progress','on-track')+
       kv(c(r=>r.progress==='done'),'Done','#1D4ED8','#EFF6FF','progress','done')
     )+(top.length?sep+`<div style="margin-bottom:10px">
-      <div style="font-size:9.5px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:#C0392B;margin-bottom:6px;display:flex;align-items:center;gap:4px">🏥 TOP 5 ICU — DURASI TERLAMA</div>
+      <div style="font-size:9.5px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:#C0392B;margin-bottom:6px;display:flex;align-items:center;gap:4px">🏥 TOP 5 EQUIPMENT — DURASI TERLAMA</div>
       <div style="background:#FFF5F5;border-radius:8px;padding:8px 10px">`+
       top.map(r=>`<div style="display:flex;justify-content:space-between;align-items:center;padding:3px 0;border-bottom:1px solid #FEE2E2;gap:8px"><div style="min-width:0"><span style="font-weight:700;color:#334155;font-size:11px">${r.unit||'–'}</span><span style="color:#64748B;font-size:10px;display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${r.tag||'–'}${r.disiplin?' · '+r.disiplin:''}</span></div><span class="db ${durCls(r.icuStart)}" style="flex-shrink:0">${durTxt(r.icuStart)}</span></div>`).join('')+
       `</div></div>`:'');
+}
+
+
+// ── PENDING USER WATCHER (admin only) ────────────
+function startPendingWatch(){
+  const q=query(collection(db,'ehm_users'));
+  onSnapshot(q,snap=>{
+    const pendingCount=snap.docs.filter(d=>(d.data().status||'pending')==='pending'&&d.id!==curUser?.uid).length;
+    const badge=document.getElementById('pendingBadge');
+    if(!badge)return;
+    if(pendingCount>0){
+      badge.textContent=pendingCount;
+      badge.style.display='inline-block';
+    } else {
+      badge.style.display='none';
+    }
+  });
 }
 
 // ── FILTER / SORT / TABLE ────────────────────────
@@ -1487,8 +1502,14 @@ function renderT(){
           ${(row.opStatus||'running')==='running'?'<div style="display:flex;align-items:center;gap:4px;cursor:'+(canEdit?'pointer':'default')+'" onclick="'+(canEdit?'cyCondition('+idx+')':'')+'" title="Klik ubah kondisi"><div class="sq s-'+(row.status||'normal')+'" style="pointer-events:none"></div><span style="font-size:8.5px;font-weight:600;color:#64748B;pointer-events:none">'+(sL[row.status||'normal']||'')+'</span></div>':''}
         </div>
       </td>
-      <td><div class="ed" style="font-size:10px;color:#64748B" ${ce} onblur="upd(${idx},'progressLW',this.innerText)">${row.progressLW||''}</div></td>
-      <td><div class="ed" style="font-size:10px;font-weight:500" ${ce} onblur="upd(${idx},'progressTW',this.innerText)">${row.progressTW||''}</div></td>
+      <td style="padding:4px 6px;vertical-align:top;min-width:130px">
+        <div class="ed" style="font-size:10px;color:#64748B;min-height:28px" ${ce} onblur="upd(${idx},'progressLW',this.innerText)">${row.progressLW||''}</div>
+        <input type="date" value="${row.progressLWDate||''}" ${canEdit?'':'disabled'} onchange="upd(${idx},'progressLWDate',this.value)" style="margin-top:3px;font-size:9px;padding:1px 4px;border:1px solid #E2E8F0;border-radius:4px;color:#94A3B8;width:100%;box-sizing:border-box;background:${canEdit?'#fff':'transparent'};${canEdit?'':'border:none;'}">
+      </td>
+      <td style="padding:4px 6px;vertical-align:top;min-width:130px">
+        <div class="ed" style="font-size:10px;font-weight:500;min-height:28px" ${ce} onblur="upd(${idx},'progressTW',this.innerText)">${row.progressTW||''}</div>
+        <input type="date" value="${row.progressTWDate||''}" ${canEdit?'':'disabled'} onchange="upd(${idx},'progressTWDate',this.value)" style="margin-top:3px;font-size:9px;padding:1px 4px;border:1px solid #E2E8F0;border-radius:4px;color:#94A3B8;width:100%;box-sizing:border-box;background:${canEdit?'#fff':'transparent'};${canEdit?'':'border:none;'}">
+      </td>
       <td style="text-align:center;min-width:60px">
         <div class="pd" style="background:${pc};cursor:${canEdit?'pointer':'default'}" onclick="${canEdit?`cyP(${idx})`:''}" title="Klik untuk edit progress"></div>
         <div style="font-size:8.5px;font-weight:600;color:#475569;margin-top:2px">${pL[row.progress]||''}</div>
@@ -1647,7 +1668,23 @@ window.doExport=function(){
   const title=$('slideTitle').value||'Equipment Health Monitoring';
   const dv=$('slideDate').value,unit=$('slideUnit').value||'PT Kilang Pertamina Balikpapan';
   const dd=dv?new Date(dv).toLocaleDateString('id-ID',{day:'numeric',month:'long',year:'numeric'}):new Date().toLocaleDateString('id-ID',{day:'numeric',month:'long',year:'numeric'});
-  setTimeout(()=>{try{buildPPT(tData,title,dd,unit,()=>{btn.disabled=false;btn.textContent='📊 Export PPT';});}catch(e){btn.disabled=false;btn.textContent='📊 Export PPT';toast('Error: '+e.message,'❌');}},80);
+  setTimeout(()=>{try{buildPPT(fData.length?fData:tData,title,dd,unit,()=>{btn.disabled=false;btn.textContent='📊 Export PPT';});}catch(e){btn.disabled=false;btn.textContent='📊 Export PPT';toast('Error: '+e.message,'❌');}},80);
+};
+window.doExportPDF=function(){
+  const btn=$('expPdfBtn');btn.disabled=true;btn.textContent='⏳…';
+  const title=$('slideTitle').value||'Equipment Health Monitoring';
+  const dv=$('slideDate').value;
+  const dd=dv?new Date(dv).toLocaleDateString('id-ID',{day:'numeric',month:'long',year:'numeric'}):new Date().toLocaleDateString('id-ID',{day:'numeric',month:'long',year:'numeric'});
+  const data=fData.length?fData:tData;
+  setTimeout(()=>{
+    try{
+      buildPDF(data,title,dd);
+      btn.disabled=false;btn.textContent='📄 Export PDF';
+    }catch(e){
+      btn.disabled=false;btn.textContent='📄 Export PDF';
+      toast('Error: '+e.message,'❌');
+    }
+  },80);
 };
 
 function buildPPT(data,title,dateDisp,unitName,onDone){
@@ -1693,8 +1730,8 @@ document.getElementById('logoImg').src,x:1.45,y:1.6,w:1.5,h:.52});}catch(e){}
       {l:'ISSUE & CONDITION', x:2.97,w:2.30},
       {l:'COUNTER MEASURE',   x:5.27,w:2.05},
       {l:'STATUS',  x:7.32,w:.85},
-      {l:'PROG LW', x:8.17,w:1.10},
-      {l:'PROG TW', x:9.27,w:1.10},
+      {l:'SEBELUMNYA', x:8.17,w:1.10},
+      {l:'SAAT INI', x:9.27,w:1.10},
       {l:'TL',      x:10.37,w:.60},
       {l:'KETERANGAN',x:10.97,w:.95},
       {l:'PIC',     x:11.92,w:.63},
@@ -1739,10 +1776,14 @@ document.getElementById('logoImg').src,x:1.45,y:1.6,w:1.5,h:.52});}catch(e){}
         sd.addShape(pptx.shapes.RECTANGLE,{x:cols[6].x+.04,y:stY+.27,w:cols[6].w-.08,h:.18,fill:{color:scBg2},line:{color:sc2,width:.4},rounding:0.1});
         sd.addText(sLbl2,{x:cols[6].x+.04,y:stY+.27,w:cols[6].w-.08,h:.18,fontFace:'Calibri',fontSize:6,bold:true,color:sc2,align:'center',valign:'middle'});
       }
-      // Col 7: PROG LW
-      sd.addText(row.progressLW||'–',{x:cols[7].x+.02,y:ry+.03,w:cols[7].w-.04,h:rowH-.08,...cs,fontSize:7});
-      // Col 8: PROG TW
-      sd.addText(row.progressTW||'–',{x:cols[8].x+.02,y:ry+.03,w:cols[8].w-.04,h:rowH-.08,...cs,fontSize:7});
+      // Col 7: PROGRESS SEBELUMNYA
+      {const dt=row.progressLWDate?new Date(row.progressLWDate).toLocaleDateString('id-ID',{day:'numeric',month:'short',year:'2-digit'}):'';
+      const txt=(row.progressLW||'–')+(dt?'\n'+dt:'');
+      sd.addText(txt,{x:cols[7].x+.02,y:ry+.03,w:cols[7].w-.04,h:rowH-.08,...cs,fontSize:7,color:'64748B'});}
+      // Col 8: PROGRESS SAAT INI
+      {const dt=row.progressTWDate?new Date(row.progressTWDate).toLocaleDateString('id-ID',{day:'numeric',month:'short',year:'2-digit'}):'';
+      const txt=(row.progressTW||'–')+(dt?'\n'+dt:'');
+      sd.addText(txt,{x:cols[8].x+.02,y:ry+.03,w:cols[8].w-.04,h:rowH-.08,...cs,fontSize:7});}
       // Col 9: TL progress dot + label
       const pc2=row.progress==='delay'?'C0392B':row.progress==='need-support'?'F59E0B':row.progress==='done'?'1D4ED8':'16A34A';
       const pcBg2=row.progress==='delay'?'FEE2E2':row.progress==='need-support'?'FEF3C7':row.progress==='done'?'EFF6FF':'DCFCE7';
@@ -1775,5 +1816,6 @@ document.getElementById('logoImg').src,x:1.45,y:1.6,w:1.5,h:.52});}catch(e){}
 }
 </script>
 <script src="https://cdn.jsdelivr.net/npm/pptxgenjs@3.12.0/dist/pptxgen.bundle.js"></script>
+
 </body>
 </html>
