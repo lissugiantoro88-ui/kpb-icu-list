@@ -544,10 +544,29 @@ tbody td:last-child{border-right:none}
           <div style="padding:10px 16px;background:#EFF6FF;border-bottom:1px solid #DBEAFE;font-size:11.5px;color:#1D4ED8">
             ℹ️ User baru dapat mendaftar melalui tombol <b>"Request Access"</b> di halaman login.
           </div>
+
           <div id="umCount" style="padding:8px 16px;font-size:11px;font-weight:600;color:#64748B;border-bottom:1px solid #F1F5F9"></div>
           <div id="umList" style="padding:8px 10px"></div>
         </div>
       </div>
+
+    <!-- ACTIVITY LOG BOX -->
+    <div class="admbox" style="background:#fff;border-radius:12px;overflow:hidden;margin-top:14px">
+      <div style="background:#1B2A3B;padding:14px 18px;display:flex;align-items:center;justify-content:space-between">
+        <h3 style="color:#fff;font-size:14px;font-weight:700;margin:0">📋 Activity Log</h3>
+        <div style="display:flex;gap:8px;align-items:center">
+          <select id="actFilter" onchange="loadActivity()" style="font-size:11px;padding:4px 8px;border-radius:6px;border:1px solid rgba(255,255,255,.2);background:rgba(255,255,255,.1);color:#fff;cursor:pointer">
+            <option value="20">20 terakhir</option>
+            <option value="50">50 terakhir</option>
+            <option value="100">100 terakhir</option>
+          </select>
+          <button class="btnsm" style="background:rgba(255,255,255,.1);color:#fff;border-color:rgba(255,255,255,.2)" onclick="loadActivity()">🔄 Refresh</button>
+        </div>
+      </div>
+      <div id="actList" style="padding:8px 0;max-height:420px;overflow-y:auto">
+        <p style="color:var(--muted);font-size:12px;padding:14px 16px">Klik Refresh untuk memuat log aktivitas…</p>
+      </div>
+    </div>
 
   </div>
 
@@ -595,7 +614,7 @@ tbody td:last-child{border-right:none}
 <script type="module">
 import{initializeApp}from"https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
 import{getAuth,createUserWithEmailAndPassword,signInWithEmailAndPassword,signOut,onAuthStateChanged}from"https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
-import{getFirestore,collection,doc,getDoc,setDoc,addDoc,updateDoc,deleteDoc,onSnapshot,query,orderBy,serverTimestamp,writeBatch,getDocs}from"https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+import{getFirestore,collection,doc,getDoc,setDoc,addDoc,updateDoc,deleteDoc,onSnapshot,query,orderBy,limit,serverTimestamp,writeBatch,getDocs}from"https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 import{getDatabase,ref,set,get,onValue,onDisconnect,serverTimestamp as rtTS}from"https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
 
 
@@ -623,6 +642,7 @@ const rtdb=getDatabase(app);
 let tData=[],fData=[],snaps=[];
 let sCol='',sDir=1,curPage=1,perPage=10,mRow=null,editId=null;
 let activeTrend='risk',curUser=null,uProf=null,unsubE=null,unsubS=null;
+let dashFilter={key:'',val:''};
 
 const rC=['High','Medium','Low'];
 const sC=['danger','alert','normal'];
@@ -845,8 +865,46 @@ async function saveRow(row){
   const by=uProf?.fullName||curUser?.email||'?';
   const p={unit:row.unit||'',tag:row.tag||'',disiplin:row.disiplin||'Rotating',risk:row.risk||'Medium',issue:row.issue||'',counter:row.counter||'',condition:row.condition||'',opStatus:row.opStatus||'running',status:row.status||'normal',solution:row.solution||'',progressLW:row.progressLW||'',progressTW:row.progressTW||'',progress:row.progress||'on-track',progressNote:row.progressNote||'',doneDate:row.doneDate||'',pic:row.pic||'',targetFinish:row.targetFinish||null,isICU:row.isICU||false,icuStart:row.icuStart||null,updatedBy:by,updatedAt:serverTimestamp()};
   try{
-    if(row.id){await updateDoc(doc(db,'ehm_equipment',row.id),p);}
-    else{p.createdBy=by;p.createdAt=serverTimestamp();const r=await addDoc(collection(db,'ehm_equipment'),p);row.id=r.id;}
+    if(row.id){
+      // Detect changed fields vs current data
+      const old=tData.find(r=>r.id===row.id)||{};
+      const trackFields={
+        unit:'Unit',tag:'Tag',disiplin:'Disiplin',risk:'Risk',
+        issue:'Issue',condition:'Condition',counter:'Counter Measure',solution:'Solution',
+        opStatus:'Op.Status',status:'Kondisi',
+        progressLW:'Progress LW',progressTW:'Progress TW',
+        progress:'TL/Progress',progressNote:'Keterangan',doneDate:'Done Date',
+        pic:'PIC',targetFinish:'Target Finish',isICU:'ICU Flag'
+      };
+      const changes=[];
+      Object.entries(trackFields).forEach(([k,label])=>{
+        const nv=p[k]??'',ov=old[k]??'';
+        if(String(nv)!==String(ov)) changes.push({field:label,from:String(ov)||'–',to:String(nv)||'–'});
+      });
+      await updateDoc(doc(db,'ehm_equipment',row.id),p);
+      // Write activity log if something changed
+      if(changes.length){
+        await addDoc(collection(db,'ehm_activity'),{
+          equipId:row.id,
+          equipLabel:(row.unit||'')+(row.tag?' – '+row.tag:''),
+          changes,
+          by,
+          byUid:curUser?.uid||'',
+          at:serverTimestamp()
+        });
+      }
+    } else {
+      p.createdBy=by;p.createdAt=serverTimestamp();
+      const r=await addDoc(collection(db,'ehm_equipment'),p);row.id=r.id;
+      // Log new equipment
+      await addDoc(collection(db,'ehm_activity'),{
+        equipId:r.id,
+        equipLabel:(row.unit||'')+(row.tag?' – '+row.tag:''),
+        changes:[{field:'Semua',from:'–',to:'Equipment baru ditambahkan'}],
+        by,byUid:curUser?.uid||'',
+        at:serverTimestamp()
+      });
+    }
   }catch(e){toast('Gagal simpan: '+e.message,'❌');}
 }
 async function delEquip(id){
@@ -1077,6 +1135,19 @@ window.openUserModal=function(){
   loadUsers();
 };
 window.closeUserModal=function(){document.getElementById('umModal').classList.remove('on');};
+window.removeUser=async function(id,name){
+  if(!confirm('Hapus user "'+name+'"?\n\nLanjut hapus?'))return;
+  try{
+    await deleteDoc(doc(db,'ehm_users',id));
+    // Also remove from RTDB online if present
+    try{
+      const uid=allUsers.find(u=>u.id===id)?.uid||id;
+      await set(ref(rtdb,'online/'+uid),null);
+    }catch(e){}
+    toast('User "'+name+'" dihapus dari sistem','🗑');
+  }catch(e){toast('Gagal hapus: '+e.message,'❌');}
+};
+
 window.closeEditUser=function(){document.getElementById('umEdit').classList.remove('on');};
 
 window.loadUsers=function(){
@@ -1105,12 +1176,77 @@ window.loadUsers=function(){
         <div class="umact">
           ${!isMe?`<button class="umbtn umbtn-ed" onclick="openEditUser('${u.id}')">✏️ Edit</button>`:''}
           ${(!isMe&&u.status==='pending')?`<button class="umbtn" style="color:#16A34A;border-color:#86EFAC;background:#DCFCE7" onclick="setUst('${u.id}','active')">✅ Approve</button>`:''}
+          ${!isMe?`<button class="umbtn" style="color:#C0392B;border-color:#FECACA;background:#FEF2F2" onclick="removeUser('${u.id}','${(u.fullName||u.email||'').replace(/'/g,'')}')" title="Hapus user dari sistem (Firestore). User perlu dihapus terpisah di Firebase Auth Console.">🗑 Hapus</button>`:''}
         </div>
       </div>`;
     });
     list.innerHTML=html;
   });
 };
+window.loadActivity=async function(){
+  const list=$('actList');
+  if(!list)return;
+  // Only admin can see this
+  if((uProf?.role||'').toLowerCase()!=='admin'){
+    list.innerHTML='<p style="color:var(--muted);font-size:12px;padding:14px 16px">Akses ditolak.</p>';
+    return;
+  }
+  list.innerHTML='<p style="color:var(--muted);font-size:12px;padding:14px 16px">⟳ Memuat…</p>';
+  try{
+    const lim=parseInt($('actFilter')?.value||'20');
+    const q=query(collection(db,'ehm_activity'),orderBy('at','desc'),limit(lim));
+    const snap=await getDocs(q);
+    if(snap.empty){
+      list.innerHTML='<p style="color:var(--muted);font-size:12px;padding:14px 16px">Belum ada aktivitas tercatat.</p>';
+      return;
+    }
+    const fieldColor={
+      'Op.Status':'#1D4ED8','Kondisi':'#7C3AED',
+      'TL/Progress':'#D97706','Keterangan':'#64748B',
+      'Risk':'#DC2626','ICU Flag':'#C0392B',
+      'PIC':'#16A34A','Target Finish':'#F59E0B'
+    };
+    let html='';
+    snap.docs.forEach(d=>{
+      const a=d.data();
+      const dt=a.at?.toDate?a.at.toDate():new Date();
+      const dtStr=dt.toLocaleDateString('id-ID',{weekday:'short',day:'numeric',month:'short',year:'numeric'})+' '+dt.toLocaleTimeString('id-ID',{hour:'2-digit',minute:'2-digit'});
+      const changesHtml=a.changes.map(c=>{
+        const fc=fieldColor[c.field]||'#475569';
+        return `<div style="display:flex;align-items:flex-start;gap:6px;margin-top:4px">
+          <span style="font-size:10px;font-weight:700;color:#fff;background:${fc};padding:1px 6px;border-radius:4px;white-space:nowrap;flex-shrink:0">${c.field}</span>
+          <span style="font-size:11px;color:#64748B"><span style="color:#DC2626;text-decoration:line-through">${c.from}</span> → <span style="color:#16A34A;font-weight:600">${c.to}</span></span>
+        </div>`;
+      }).join('');
+      html+=`<div style="padding:10px 16px;border-bottom:1px solid #F1F5F9">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px;margin-bottom:4px">
+          <div>
+            <span style="font-size:12px;font-weight:700;color:#1E293B">${a.equipLabel||a.equipId||'–'}</span>
+          </div>
+          <div style="text-align:right;flex-shrink:0">
+            <span style="font-size:10px;font-weight:700;color:#fff;background:#475569;padding:2px 7px;border-radius:10px">${a.by||'?'}</span>
+            <div style="font-size:9.5px;color:#94A3B8;margin-top:2px">${dtStr}</div>
+          </div>
+        </div>
+        ${changesHtml}
+      </div>`;
+    });
+    list.innerHTML=html;
+  }catch(e){
+    if(e.message&&e.message.includes('permission')){
+      list.innerHTML=`<div style="padding:14px 16px">
+        <p style="color:#DC2626;font-size:12px;font-weight:700;margin-bottom:8px">⚠️ Firestore rules perlu diupdate</p>
+        <p style="color:#64748B;font-size:11px;margin-bottom:8px">Tambahkan rule berikut di Firebase Console → Firestore → Rules:</p>
+        <pre style="background:#1E293B;color:#86EFAC;padding:10px;border-radius:6px;font-size:10px;overflow-x:auto">match /ehm_activity/{id} {
+  allow read, write: if request.auth != null;
+}</pre>
+      </div>`;
+    } else {
+      list.innerHTML='<p style="color:#DC2626;font-size:12px;padding:14px 16px">Error: '+e.message+'</p>';
+    }
+  }
+};
+
 window.openEditUser=function(id){
   const u=allUsers.find(x=>x.id===id);if(!u)return;
   editUid=id;
@@ -1138,7 +1274,7 @@ window.switchTab=function(t){
   ['t0','t1','t2'].forEach(id=>$(id).classList.remove('on'));
   const m={main:'t0',hist:'t1',admin:'t2'};if(m[t])$(m[t]).classList.add('on');
   if(t==='hist')startSnapSync();
-  if(t==='admin')loadUsers();
+  if(t==='admin'){loadUsers();loadActivity();}
 };
 
 // ── DURATION ─────────────────────────────────────
@@ -1178,61 +1314,107 @@ function durTxt(s){
 function durCls(s){const ms=durMs(s);if(!ms)return 'd-none';const d=Math.floor(ms/86400000);return d>180?'d-crit':d>30?'d-warn':'d-ok';}
 
 // ── DASHBOARD ─────────────────────────────────────
+// ── DASHBOARD QUICK FILTER ────────────────────────
+function setDashFilter(key,val){
+  if(dashFilter.key===key&&dashFilter.val===val){
+    // Toggle off if same card clicked again
+    dashFilter={key:'',val:''};
+  } else {
+    dashFilter={key,val};
+  }
+  renderDash(); // re-render to update active state
+  applyF();
+  // Scroll to table
+  const tbl=document.querySelector('.tbar');
+  if(tbl)tbl.scrollIntoView({behavior:'smooth',block:'start'});
+}
+window.setDashFilter=setDashFilter;
+
 function renderDash(){
   const d=tData,c=fn=>d.filter(fn).length;
-  const top=[...d].filter(x=>x.icuStart).sort((a,b)=>durMs(b.icuStart)-durMs(a.icuStart)).slice(0,3);
-  
-  // Compact card helper
-  const kv=(val,lbl,clr,bg)=>`<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;background:${bg};border-radius:8px;padding:8px 10px;min-width:64px;flex:1;border-bottom:2px solid ${clr}"><span style="font-size:22px;font-weight:800;color:${clr};line-height:1">${val}</span><span style="font-size:9px;font-weight:600;color:#64748B;margin-top:3px;text-align:center;white-space:nowrap">${lbl}</span></div>`;
-  const row=(title,icon,clr,cards)=>`<div style="margin-bottom:10px"><div style="font-size:9.5px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:${clr};margin-bottom:6px;display:flex;align-items:center;gap:4px">${icon} ${title}</div><div style="display:flex;flex-wrap:wrap;gap:6px">${cards}</div></div>`;
+  const top=[...d].filter(x=>x.icuStart).sort((a,b)=>durMs(b.icuStart)-durMs(a.icuStart)).slice(0,5);
 
+  // Card helper with click-to-filter + active state
+  const isActive=(k,v)=>dashFilter.key===k&&dashFilter.val===v;
+  const kv=(val,lbl,clr,bg,fKey,fVal)=>{
+    const active=fKey&&isActive(fKey,fVal);
+    const cursor=fKey?'cursor:pointer;':'';
+    const activeBorder=active?`box-shadow:0 0 0 2.5px ${clr};transform:scale(1.04);`:'' ;
+    const onclick=fKey?`onclick="setDashFilter('${fKey}','${fVal}')"` :'';
+    return `<div ${onclick} style="display:flex;flex-direction:column;align-items:center;justify-content:center;background:${active?clr+'22':bg};border-radius:8px;padding:8px 10px;min-width:64px;flex:1;border-bottom:3px solid ${clr};${cursor}${activeBorder}transition:all .15s" title="${fKey?'Klik untuk filter: '+lbl:''}">
+      <span style="font-size:22px;font-weight:800;color:${clr};line-height:1">${val}</span>
+      <span style="font-size:9px;font-weight:600;color:${active?clr:'#64748B'};margin-top:3px;text-align:center;white-space:nowrap">${active?'▸ ':''} ${lbl}</span>
+    </div>`;
+  };
+  const row=(title,icon,clr,cards)=>`<div style="margin-bottom:10px"><div style="font-size:9.5px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:${clr};margin-bottom:6px;display:flex;align-items:center;gap:4px">${icon} ${title}</div><div style="display:flex;flex-wrap:wrap;gap:6px">${cards}</div></div>`;
   const sep=`<div style="border-top:1px solid #E2E8F0;margin:10px 0"></div>`;
 
-  $('dashSec').innerHTML=
+  // Active filter banner
+  const filterLabels={
+    total:'Semua',isICU:'ICU',
+    disiplin:dashFilter.val,risk:dashFilter.val,
+    opStatus:dashFilter.val,status:dashFilter.val,progress:dashFilter.val
+  };
+  const activeBanner=dashFilter.key?`<div style="background:#EFF6FF;border:1px solid #BFDBFE;border-radius:8px;padding:6px 12px;margin-bottom:10px;display:flex;align-items:center;justify-content:space-between">
+    <span style="font-size:11px;color:#1D4ED8;font-weight:600">🔍 Filter aktif: <b>${filterLabels[dashFilter.key]||dashFilter.val}</b></span>
+    <button onclick="setDashFilter('','')" style="background:none;border:none;color:#1D4ED8;cursor:pointer;font-size:11px;font-weight:700;padding:0 4px">✕ Hapus filter</button>
+  </div>`:'';
+
+  $('dashSec').innerHTML= activeBanner+
     row('Overview','📊','#1D4ED8',
-      kv(d.length,'Total','#1D4ED8','#EFF6FF')+
-      kv(c(r=>r.isICU),'ICU','#C0392B','#FEF2F2')+
-      kv(c(r=>r.disiplin==='Static'),'Static','#7C3AED','#FAF5FF')+
-      kv(c(r=>r.disiplin==='Rotating'),'Rotating','#1D4ED8','#EFF6FF')+
-      kv(c(r=>r.disiplin==='Instrument'),'Instr.','#D97706','#FFFBEB')+
-      kv(c(r=>r.disiplin==='Electrical'),'Elec.','#16A34A','#F0FDF4')
+      kv(d.length,'Total','#1D4ED8','#EFF6FF','total','')+
+      kv(c(r=>r.isICU),'ICU','#C0392B','#FEF2F2','isICU','yes')+
+      kv(c(r=>r.disiplin==='Static'),'Static','#7C3AED','#FAF5FF','disiplin','Static')+
+      kv(c(r=>r.disiplin==='Rotating'),'Rotating','#1D4ED8','#EFF6FF','disiplin','Rotating')+
+      kv(c(r=>r.disiplin==='Instrument'),'Instr.','#D97706','#FFFBEB','disiplin','Instrument')+
+      kv(c(r=>r.disiplin==='Electrical'),'Elec.','#16A34A','#F0FDF4','disiplin','Electrical')
     )+sep+
     row('Risk','⚠️','#DC2626',
-      kv(c(r=>r.risk==='High'),'High','#DC2626','#FEF2F2')+
-      kv(c(r=>r.risk==='Medium'),'Medium','#F59E0B','#FFFBEB')+
-      kv(c(r=>r.risk==='Low'),'Low','#16A34A','#F0FDF4')
+      kv(c(r=>r.risk==='High'),'High','#DC2626','#FEF2F2','risk','High')+
+      kv(c(r=>r.risk==='Medium'),'Medium','#F59E0B','#FFFBEB','risk','Medium')+
+      kv(c(r=>r.risk==='Low'),'Low','#16A34A','#F0FDF4','risk','Low')
     )+sep+
     row('Operasional','⚙️','#475569',
-      kv(c(r=>(r.opStatus||'running')==='running'),'Running','#16A34A','#F0FDF4')+
-      kv(c(r=>(r.opStatus||'running')==='repair'),'Repair','#DC2626','#FEF2F2')+
-      kv(c(r=>(r.opStatus||'running')==='standby'),'Standby','#F59E0B','#FFFBEB')+
+      kv(c(r=>(r.opStatus||'running')==='running'),'Running','#16A34A','#F0FDF4','opStatus','running')+
+      kv(c(r=>(r.opStatus||'running')==='repair'),'Repair','#DC2626','#FEF2F2','opStatus','repair')+
+      kv(c(r=>(r.opStatus||'running')==='standby'),'Standby','#F59E0B','#FFFBEB','opStatus','standby')+
       `<div style="width:1px;background:#E2E8F0;margin:0 4px"></div>`+
-      kv(c(r=>(r.opStatus||'running')==='running'&&r.status==='danger'),'Danger','#DC2626','#FEF2F2')+
-      kv(c(r=>(r.opStatus||'running')==='running'&&r.status==='alert'),'Alert','#F59E0B','#FFFBEB')+
-      kv(c(r=>(r.opStatus||'running')==='running'&&(r.status||'normal')==='normal'),'Normal','#16A34A','#F0FDF4')
+      kv(c(r=>(r.opStatus||'running')==='running'&&r.status==='danger'),'Danger','#DC2626','#FEF2F2','status','danger')+
+      kv(c(r=>(r.opStatus||'running')==='running'&&r.status==='alert'),'Alert','#F59E0B','#FFFBEB','status','alert')+
+      kv(c(r=>(r.opStatus||'running')==='running'&&(r.status||'normal')==='normal'),'Normal','#16A34A','#F0FDF4','status','normal')
     )+sep+
-    row('Progress','📈','#7C3AED',
-      kv(c(r=>r.progress==='delay'),'Delay','#DC2626','#FEF2F2')+
-      kv(c(r=>r.progress==='need-support'),'Need Supp.','#F59E0B','#FFFBEB')+
-      kv(c(r=>r.progress==='on-track'),'On Track','#16A34A','#F0FDF4')+
-      kv(c(r=>r.progress==='done'),'Done','#1D4ED8','#EFF6FF')
-    )+sep+
-    row('Durasi Monitor','⏱️','#D97706',
-      kv(c(r=>durCls(r.icuStart)==='d-crit'),'>6 Bln','#DC2626','#FEF2F2')+
-      kv(c(r=>durCls(r.icuStart)==='d-warn'),'1–6 Bln','#F59E0B','#FFFBEB')+
-      kv(c(r=>durCls(r.icuStart)==='d-ok'),'<30 Hr','#16A34A','#F0FDF4')+
-      `<div style="background:#F8FAFC;border-radius:8px;padding:8px 10px;flex:3;min-width:160px;font-size:9px">`+
-      `<div style="font-weight:700;color:#64748B;margin-bottom:5px;text-transform:uppercase;font-size:8.5px;letter-spacing:.06em">🏥 Top 5 Equipment ICU — Durasi Terlama</div>`+
-      top.map(r=>`<div style="display:flex;justify-content:space-between;align-items:center;padding:3px 0;border-bottom:1px solid #F1F5F9;gap:8px"><div style="min-width:0"><span style="font-weight:700;color:#334155;font-size:11px">${r.unit||'–'}</span><span style="color:#64748B;font-size:10px;display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${r.tag||'–'}${r.disiplin?' · '+r.disiplin:''}</span></div><span class="db ${durCls(r.icuStart)}" style="flex-shrink:0">${durTxt(r.icuStart)}</span></div>`).join('')+
-      `</div>`
-    );
+    row('Progress','📝','#7C3AED',
+      kv(c(r=>r.progress==='delay'),'Delay','#DC2626','#FEF2F2','progress','delay')+
+      kv(c(r=>r.progress==='need-support'),'Need Supp.','#F59E0B','#FFFBEB','progress','need-support')+
+      kv(c(r=>r.progress==='on-track'),'On Track','#16A34A','#F0FDF4','progress','on-track')+
+      kv(c(r=>r.progress==='done'),'Done','#1D4ED8','#EFF6FF','progress','done')
+    )+(top.length?sep+`<div style="margin-bottom:10px">
+      <div style="font-size:9.5px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:#C0392B;margin-bottom:6px;display:flex;align-items:center;gap:4px">🏥 TOP 5 ICU — DURASI TERLAMA</div>
+      <div style="background:#FFF5F5;border-radius:8px;padding:8px 10px">`+
+      top.map(r=>`<div style="display:flex;justify-content:space-between;align-items:center;padding:3px 0;border-bottom:1px solid #FEE2E2;gap:8px"><div style="min-width:0"><span style="font-weight:700;color:#334155;font-size:11px">${r.unit||'–'}</span><span style="color:#64748B;font-size:10px;display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${r.tag||'–'}${r.disiplin?' · '+r.disiplin:''}</span></div><span class="db ${durCls(r.icuStart)}" style="flex-shrink:0">${durTxt(r.icuStart)}</span></div>`).join('')+
+      `</div></div>`:'');
 }
 
 // ── FILTER / SORT / TABLE ────────────────────────
 function applyF(){
   const q=$('srch').value.toLowerCase();
   const fd=$('fD').value,fr=$('fR').value,fs=$('fS').value,fp=$('fP').value,fi=$('fICU')?$('fICU').value:'',fu=$('fU')?$('fU').value:'';
-  fData=tData.filter((r,i)=>{r._i=i;const txt=[r.unit,r.tag,r.disiplin,r.issue,r.counter,r.condition,r.solution,r.progressLW,r.progressTW,r.pic].join(' ').toLowerCase();return(!q||txt.includes(q))&&(!fd||r.disiplin===fd)&&(!fr||r.risk===fr)&&(!fs||(fs.startsWith('op:')?((r.opStatus||'running')===fs.slice(3)):((r.status||'normal')===fs)))&&(!fp||r.progress===fp)&&(!fi||(fi==='icu'?r.isICU===true:r.isICU!==true))&&(!fu||r.unit===fu);});
+  fData=tData.filter((r,i)=>{r._i=i;
+    const txt=[r.unit,r.tag,r.disiplin,r.issue,r.counter,r.condition,r.solution,r.progressLW,r.progressTW,r.pic].join(' ').toLowerCase();
+    // Dashboard quick filter
+    let df=true;
+    if(dashFilter.key){
+      const k=dashFilter.key,v=dashFilter.val;
+      if(k==='disiplin')df=r.disiplin===v;
+      else if(k==='risk')df=r.risk===v;
+      else if(k==='opStatus')df=(r.opStatus||'running')===v;
+      else if(k==='status')df=(r.status||'normal')===v;
+      else if(k==='progress')df=r.progress===v;
+      else if(k==='isICU')df=r.isICU===true;
+      else if(k==='total')df=true;
+    }
+    return df&&(!q||txt.includes(q))&&(!fd||r.disiplin===fd)&&(!fr||r.risk===fr)&&(!fs||(fs.startsWith('op:')?((r.opStatus||'running')===fs.slice(3)):((r.status||'normal')===fs)))&&(!fp||r.progress===fp)&&(!fi||(fi==='icu'?r.isICU===true:r.isICU!==true))&&(!fu||r.unit===fu);
+  });
   if(sCol)fData.sort((a,b)=>{const av=a[sCol]||'',bv=b[sCol]||'';return av<bv?-sDir:av>bv?sDir:0;});
   curPage=1;renderT();
 }
