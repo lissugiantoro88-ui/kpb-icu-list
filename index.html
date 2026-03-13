@@ -514,7 +514,7 @@ tbody td:last-child{border-right:none}
     <!-- HISTORY PANEL -->
     <div id="pHist" class="panel">
       <div class="hhdr">
-        <div class="hhdr-l"><h2>🕐 History Snapshot &amp; Trend</h2><p>Snapshot tersimpan di Firebase · Bisa dilihat semua anggota tim</p></div>
+        <div class="hhdr-l"><h2>🕐 History Snapshot &amp; Trend</h2></div>
         <div class="hdract">
           <button class="btnsm" onclick="clearAllSnaps()">🗑 Hapus Semua</button>
           <button class="btnsnap" onclick="saveSnapshot()">💾 Simpan Snapshot</button>
@@ -522,11 +522,12 @@ tbody td:last-child{border-right:none}
       </div>
       <div class="trendsec">
         <div class="trhdr">
-          <div class="trhdr-l"><h3>📈 Grafik Trend</h3><p>Snapshot per minggu/bulan</p></div>
+          <div class="trhdr-l"><h3>📈 Grafik Trend</h3></div>
           <div class="trtabs">
             <button class="tt on" onclick="swTrend('risk',this)">Risk</button>
             <button class="tt" onclick="swTrend('status',this)">Status</button>
             <button class="tt" onclick="swTrend('progress',this)">Progress</button>
+            <button class="tt" onclick="swTrend('durasi',this)">Durasi Monitor</button>
           </div>
         </div>
         <div id="trendBody"></div>
@@ -1271,7 +1272,7 @@ window.switchTab=function(t){
   $('pAdmin').classList.toggle('on',t==='admin');
   ['t0','t1','t2'].forEach(id=>$(id).classList.remove('on'));
   const m={main:'t0',hist:'t1',admin:'t2'};if(m[t])$(m[t]).classList.add('on');
-  if(t==='hist')startSnapSync();
+  if(t==='hist'){startSnapSync();renderTrend();}
   if(t==='admin'){loadUsers();loadActivity();}
 };
 
@@ -1609,57 +1610,272 @@ function renderSnaps(){
 window.swTrend=function(t,el){activeTrend=t;document.querySelectorAll('.tt').forEach(b=>b.classList.remove('on'));if(el)el.classList.add('on');renderTrend();};
 function renderTrend(){
   const body=$('trendBody');
-  const sn=[...snaps].reverse();
-  if(sn.length<2){body.innerHTML='<div class="nochart">📊 Butuh minimal <b>2 snapshot</b> untuk grafik trend.</div>';return;}
-  const toD=s=>s.createdAt?.toDate?s.createdAt.toDate():new Date(s.createdAt);
-  const allSameDay=sn.every(s=>{const d0=toD(sn[0]),d=toD(s);return d.getDate()===d0.getDate()&&d.getMonth()===d0.getMonth()&&d.getFullYear()===d0.getFullYear();});
-  const byM={};
-  sn.forEach(s=>{const d=toD(s);const mk=allSameDay?(d.getFullYear()+'-'+(d.getMonth()+1)+'-'+d.getDate()):(d.getFullYear()+'-'+(d.getMonth()+1));if(!byM[mk])byM[mk]=[];byM[mk].push(s);});
-  let sd=[];
-  if(activeTrend==='risk')sd=[{l:'High',c:'#C0392B',f:d=>d.filter(r=>r.risk==='High').length},{l:'Medium',c:'#D97706',f:d=>d.filter(r=>r.risk==='Medium').length},{l:'Low',c:'#16A34A',f:d=>d.filter(r=>r.risk==='Low').length}];
-  else if(activeTrend==='status')sd=[{l:'Running',c:'#16A34A',f:d=>d.filter(r=>(r.opStatus||'running')==='running').length},{l:'Repair',c:'#DC2626',f:d=>d.filter(r=>r.opStatus==='repair').length},{l:'Standby',c:'#F59E0B',f:d=>d.filter(r=>r.opStatus==='standby').length},{l:'Danger',c:'#FF6B6B',f:d=>d.filter(r=>r.status==='danger').length},{l:'Alert',c:'#FFA500',f:d=>d.filter(r=>r.status==='alert').length},{l:'Normal',c:'#52B788',f:d=>d.filter(r=>(r.status||'normal')==='normal').length}];
-  else sd=[{l:'Delay',c:'#DC2626',f:d=>d.filter(r=>r.progress==='delay').length},{l:'Need Support',c:'#F59E0B',f:d=>d.filter(r=>r.progress==='need-support').length},{l:'On Track',c:'#16A34A',f:d=>d.filter(r=>r.progress==='on-track').length},{l:'Done',c:'#1D4ED8',f:d=>d.filter(r=>r.progress==='done').length}];
-  const mk=Object.keys(byM).sort();
-  let html='<div style="overflow-x:auto"><div style="display:flex;gap:0;min-width:'+Math.max(480,mk.length*185)+'px">';
-  mk.forEach((k,mi)=>{
-    const ms=byM[k],n=ms.length;
-    const d0=toD(ms[0]);
-    const mName=allSameDay?d0.toLocaleDateString('id-ID',{weekday:'short',day:'numeric',month:'long',year:'numeric'}):d0.toLocaleDateString('id-ID',{month:'long',year:'numeric'});
-    const W=Math.max(160,n*75+65),H=148;
-    html+=`<div style="flex:0 0 ${W}px;border-right:${mi<mk.length-1?'1px solid #E2E8F0':'none'};padding:0 5px 0 ${mi===0?0:5}px">
-      <div style="font-size:9px;font-weight:700;color:#64748B;text-align:center;margin-bottom:5px;text-transform:uppercase;letter-spacing:.5px">${mName}</div>
-      <canvas id="cv${k.replace(/-/g,'_')}" width="${W}" height="${H}" style="width:${W}px;height:${H}px"></canvas></div>`;
-  });
-  html+='</div></div><div class="clegend">'+sd.map(s=>`<div class="cli"><div class="cld" style="background:${s.c}"></div>${s.l}</div>`).join('')+'</div>';
-  body.innerHTML=html;
-  mk.forEach(k=>{
-    const ms=byM[k],n=ms.length;
-    const cv=document.getElementById('cv'+k.replace(/-/g,'_'));if(!cv)return;
-    const ctx=cv.getContext('2d'),W=cv.width,H=cv.height,P={t:14,r:12,b:33,l:25};
-    const gW=W-P.l-P.r,gH=H-P.t-P.b;
-    const parsed=ms.map(s=>JSON.parse(s.dataJson||'[]'));
-    const vals=sd.map(s=>parsed.map(d=>s.f(d)));
-    const maxV=Math.max(1,...vals.flat());
-    ctx.clearRect(0,0,W,H);
-    ctx.strokeStyle='#E2E8F0';ctx.lineWidth=.7;
-    for(let i=0;i<=4;i++){const y=P.t+gH*(1-i/4);ctx.beginPath();ctx.moveTo(P.l,y);ctx.lineTo(P.l+gW,y);ctx.stroke();ctx.fillStyle='#94A3B8';ctx.font='7.5px Outfit,sans-serif';ctx.textAlign='right';ctx.fillText(Math.round(maxV*i/4),P.l-3,y+3);}
-    for(let i=0;i<n;i++){
-      const x=P.l+(n===1?gW/2:i*gW/(n-1));
-      ctx.fillStyle='#64748B';ctx.font='8px Outfit,sans-serif';ctx.textAlign='center';ctx.fillText('W'+(i+1),x,H-P.b+11);
-      const dd=toD(ms[i]);
-      const lx=allSameDay?(dd.getHours().toString().padStart(2,'0')+':'+dd.getMinutes().toString().padStart(2,'0')):(dd.getDate()+'/'+(dd.getMonth()+1));
-      ctx.fillStyle='#B0BAC8';ctx.font='7px Outfit,sans-serif';ctx.fillText(lx,x,H-P.b+20);
+  body.innerHTML='<div style="padding:20px;color:#94A3B8;font-size:13px;text-align:center">⏳ Memuat data trend…</div>';
+  loadTrendFromActivity();
+}
+
+async function loadTrendFromActivity(){
+  const body=$('trendBody');
+  try{
+    // Fetch last 500 activity records ordered by time
+    const q=query(collection(db,'ehm_activity'),orderBy('ts','desc'),limit(500));
+    const snap=await getDocs(q);
+    const acts=snap.docs.map(d=>({id:d.id,...d.data()}));
+    if(!acts.length){
+      body.innerHTML='<div class="nochart">📊 Belum ada data perubahan di activity log.</div>';return;
     }
-    sd.forEach((s,si)=>{
-      const pts=vals[si];
-      ctx.beginPath();pts.forEach((v,i)=>{const x=P.l+(n===1?gW/2:i*gW/(n-1)),y=P.t+gH*(1-v/maxV);i===0?ctx.moveTo(x,y):ctx.lineTo(x,y);});
-      ctx.lineTo(P.l+(n===1?gW/2:(n-1)*gW/(n-1)),P.t+gH);ctx.lineTo(P.l,P.t+gH);ctx.closePath();ctx.fillStyle=s.c+'14';ctx.fill();
-      ctx.beginPath();ctx.strokeStyle=s.c;ctx.lineWidth=1.8;ctx.lineJoin='round';
-      pts.forEach((v,i)=>{const x=P.l+(n===1?gW/2:i*gW/(n-1)),y=P.t+gH*(1-v/maxV);i===0?ctx.moveTo(x,y):ctx.lineTo(x,y);});ctx.stroke();
-      pts.forEach((v,i)=>{const x=P.l+(n===1?gW/2:i*gW/(n-1)),y=P.t+gH*(1-v/maxV);ctx.beginPath();ctx.arc(x,y,3,0,Math.PI*2);ctx.fillStyle=s.c;ctx.fill();ctx.strokeStyle='#fff';ctx.lineWidth=1.1;ctx.stroke();if(v>0){ctx.fillStyle=s.c;ctx.font='bold 7.5px Outfit,sans-serif';ctx.textAlign='center';ctx.fillText(v,x,y-6);}});
+    renderTrendFromActs(acts);
+  }catch(e){
+    body.innerHTML='<div class="nochart">⚠️ Gagal memuat activity log: '+e.message+'</div>';
+  }
+}
+
+function renderTrendFromActs(acts){
+  const body=$('trendBody');
+  const t=activeTrend;
+
+  // ── Build timeline: group by date (YYYY-MM-DD) ──
+  // For each day, collect the LATEST state of each equipment field
+  // by replaying changes chronologically (acts are desc, so reverse)
+  const chronoActs=[...acts].reverse();
+
+  // equipState: {equipId: {risk, opStatus, status, progress, icuStart}}
+  // We seed from current tData as baseline
+  const equipState={};
+  tData.forEach(r=>{
+    equipState[r.id]={
+      risk:r.risk||'Low',
+      opStatus:r.opStatus||'running',
+      status:r.status||'normal',
+      progress:r.progress||'on-track',
+      icuStart:r.icuStart||r.createdAt||null,
+      tag:r.tag||'',unit:r.unit||''
+    };
+  });
+
+  // Collect all unique dates from activities
+  const daySet=new Set();
+  chronoActs.forEach(a=>{
+    const d=a.ts?.toDate?a.ts.toDate():new Date(a.ts||Date.now());
+    daySet.add(d.toISOString().slice(0,10));
+  });
+  const days=[...daySet].sort();
+
+  // Replay changes per day — snapshot state at end of each day
+  const daySnapshots={}; // {date: {equipId: state}}
+  // Start with a "pre-history" state (current minus all changes) — approximate with current
+  let curState=JSON.parse(JSON.stringify(equipState));
+
+  // For each day in order, apply that day's changes then snapshot
+  days.forEach(day=>{
+    const dayActs=chronoActs.filter(a=>{
+      const d=a.ts?.toDate?a.ts.toDate():new Date(a.ts||0);
+      return d.toISOString().slice(0,10)===day;
+    });
+    dayActs.forEach(a=>{
+      const eid=a.equipId;
+      if(!eid)return;
+      if(!curState[eid])curState[eid]={risk:'Low',opStatus:'running',status:'normal',progress:'on-track'};
+      (a.changes||[]).forEach(ch=>{
+        const f=ch.field;
+        if(['Risk','risk'].includes(f))curState[eid].risk=ch.to;
+        else if(['opStatus','Op Status'].includes(f))curState[eid].opStatus=ch.to;
+        else if(['status','Status'].includes(f))curState[eid].status=ch.to;
+        else if(['progress','Progress'].includes(f))curState[eid].progress=ch.to;
+      });
+    });
+    daySnapshots[day]=JSON.parse(JSON.stringify(curState));
+  });
+
+  // Now render based on activeTrend
+  if(t==='durasi'){
+    renderDurasiTrend(body, tData);
+    return;
+  }
+
+  // ── Series definitions ──
+  let series=[];
+  if(t==='risk'){
+    series=[
+      {l:'High',c:'#C0392B',f:s=>Object.values(s).filter(e=>e.risk==='High').length},
+      {l:'Medium',c:'#D97706',f:s=>Object.values(s).filter(e=>e.risk==='Medium').length},
+      {l:'Low',c:'#16A34A',f:s=>Object.values(s).filter(e=>e.risk==='Low').length},
+    ];
+  } else if(t==='status'){
+    series=[
+      {l:'Running',c:'#16A34A',f:s=>Object.values(s).filter(e=>(e.opStatus||'running')==='running').length},
+      {l:'Repair',c:'#DC2626',f:s=>Object.values(s).filter(e=>e.opStatus==='repair').length},
+      {l:'Standby',c:'#F59E0B',f:s=>Object.values(s).filter(e=>e.opStatus==='standby').length},
+      {l:'Danger',c:'#FF4444',f:s=>Object.values(s).filter(e=>e.status==='danger').length},
+      {l:'Alert',c:'#FFA500',f:s=>Object.values(s).filter(e=>e.status==='alert').length},
+    ];
+  } else {
+    series=[
+      {l:'Delay',c:'#DC2626',f:s=>Object.values(s).filter(e=>e.progress==='delay').length},
+      {l:'Need Support',c:'#F59E0B',f:s=>Object.values(s).filter(e=>e.progress==='need-support').length},
+      {l:'On Track',c:'#16A34A',f:s=>Object.values(s).filter(e=>e.progress==='on-track').length},
+      {l:'Done',c:'#1D4ED8',f:s=>Object.values(s).filter(e=>e.progress==='done').length},
+    ];
+  }
+
+  // ── Draw timeline chart ──
+  const labels=days.map(d=>{const[y,m,dd]=d.split('-');return dd+'/'+m;});
+  const vals=series.map(s=>days.map(d=>s.f(daySnapshots[d])));
+  const maxV=Math.max(1,...vals.flat());
+
+  const W=Math.max(480,days.length*60+80), H=200;
+  const P={t:18,r:18,b:40,l:30};
+  const gW=W-P.l-P.r, gH=H-P.t-P.b;
+
+  let html=`
+  <div style="overflow-x:auto;padding:12px 0 0">
+    <canvas id="trendMainCv" width="${W}" height="${H}" style="width:${W}px;height:${H}px;display:block"></canvas>
+  </div>
+  <div class="clegend" style="margin-top:8px">
+    ${series.map(s=>`<div class="cli"><div class="cld" style="background:${s.c}"></div>${s.l}</div>`).join('')}
+  </div>
+  <div style="font-size:10px;color:#94A3B8;padding:6px 12px 0">
+    📌 Data dari <b>${acts? acts.length:0}</b> perubahan — diplot per hari aktual. 
+    Klik tab lain untuk ganti dimensi.
+  </div>`;
+
+  body.innerHTML=html;
+
+  const cv=document.getElementById('trendMainCv');
+  if(!cv)return;
+  const ctx=cv.getContext('2d');
+  ctx.clearRect(0,0,W,H);
+
+  // Grid
+  ctx.strokeStyle='#E2E8F0';ctx.lineWidth=.7;
+  for(let i=0;i<=4;i++){
+    const y=P.t+gH*(1-i/4);
+    ctx.beginPath();ctx.moveTo(P.l,y);ctx.lineTo(P.l+gW,y);ctx.stroke();
+    ctx.fillStyle='#94A3B8';ctx.font='9px sans-serif';ctx.textAlign='right';
+    ctx.fillText(Math.round(maxV*i/4),P.l-4,y+3);
+  }
+
+  // X labels
+  labels.forEach((lbl,i)=>{
+    const x=P.l+(days.length===1?gW/2:i*gW/(days.length-1));
+    ctx.fillStyle='#64748B';ctx.font='9px sans-serif';ctx.textAlign='center';
+    ctx.fillText(lbl,x,H-P.b+14);
+  });
+
+  // Series lines + fill
+  series.forEach((s,si)=>{
+    const pts=vals[si];
+    // Fill
+    ctx.beginPath();
+    pts.forEach((v,i)=>{
+      const x=P.l+(days.length===1?gW/2:i*gW/(days.length-1));
+      const y=P.t+gH*(1-v/maxV);
+      i===0?ctx.moveTo(x,y):ctx.lineTo(x,y);
+    });
+    const lastX=P.l+(days.length===1?gW/2:(days.length-1)*gW/(days.length-1));
+    ctx.lineTo(lastX,P.t+gH);ctx.lineTo(P.l,P.t+gH);ctx.closePath();
+    ctx.fillStyle=s.c+'18';ctx.fill();
+    // Line
+    ctx.beginPath();ctx.strokeStyle=s.c;ctx.lineWidth=2;ctx.lineJoin='round';
+    pts.forEach((v,i)=>{
+      const x=P.l+(days.length===1?gW/2:i*gW/(days.length-1));
+      const y=P.t+gH*(1-v/maxV);
+      i===0?ctx.moveTo(x,y):ctx.lineTo(x,y);
+    });
+    ctx.stroke();
+    // Dots + labels
+    pts.forEach((v,i)=>{
+      const x=P.l+(days.length===1?gW/2:i*gW/(days.length-1));
+      const y=P.t+gH*(1-v/maxV);
+      ctx.beginPath();ctx.arc(x,y,3.5,0,Math.PI*2);
+      ctx.fillStyle=s.c;ctx.fill();
+      ctx.strokeStyle='#fff';ctx.lineWidth=1.2;ctx.stroke();
+      if(v>0){
+        ctx.fillStyle=s.c;ctx.font='bold 8px sans-serif';ctx.textAlign='center';
+        ctx.fillText(v,x,y-7);
+      }
     });
   });
 }
+
+function renderDurasiTrend(body, data){
+  // Show top equipment by monitoring duration, as a horizontal bar chart
+  const now=Date.now();
+  const rows=data
+    .filter(r=>r.icuStart||r.createdAt)
+    .map(r=>{
+      const start=r.icuStart?.toDate?r.icuStart.toDate():
+                  r.createdAt?.toDate?r.createdAt.toDate():
+                  new Date(r.icuStart||r.createdAt||now);
+      const days=Math.floor((now-start.getTime())/86400000);
+      return {lbl:(r.unit?r.unit+' – ':'')+( r.tag||r.id||'?'), days, status:r.status||'normal', progress:r.progress||'on-track'};
+    })
+    .sort((a,b)=>b.days-a.days)
+    .slice(0,15);
+
+  if(!rows.length){
+    body.innerHTML='<div class="nochart">📊 Belum ada data durasi monitor.</div>';return;
+  }
+
+  const maxD=Math.max(1,...rows.map(r=>r.days));
+  const rowH=32, pad=12, lblW=160, barArea=340, W=lblW+barArea+60, H=rows.length*rowH+pad*2+30;
+
+  let html=`<div style="overflow-x:auto;padding:8px 0">
+  <canvas id="durasiCv" width="${W}" height="${H}" style="width:${W}px;height:${H}px;display:block"></canvas>
+  </div>
+  <div style="font-size:10px;color:#94A3B8;padding:4px 12px">
+    📌 Berdasarkan tanggal mulai monitor — top 15 terlama
+  </div>`;
+  body.innerHTML=html;
+
+  const cv=document.getElementById('durasiCv');if(!cv)return;
+  const ctx=cv.getContext('2d');
+  ctx.clearRect(0,0,W,H);
+
+  // Title
+  ctx.fillStyle='#1B2A3B';ctx.font='bold 11px sans-serif';
+  ctx.fillText('Durasi Monitoring (hari)',lblW,16);
+
+  rows.forEach((r,i)=>{
+    const y=pad+30+i*rowH;
+    const barW=Math.max(2,Math.round(r.days/maxD*barArea));
+    const barColor=r.status==='danger'?'#DC2626':r.status==='alert'?'#F59E0B':'#1D4ED8';
+    const bgColor=r.status==='danger'?'#FEE2E2':r.status==='alert'?'#FEF3C7':'#EFF6FF';
+
+    // Label
+    ctx.fillStyle='#334155';ctx.font='9px sans-serif';ctx.textAlign='right';
+    const shortLbl=r.lbl.length>22?r.lbl.slice(0,21)+'…':r.lbl;
+    ctx.fillText(shortLbl,lblW-6,y+13);
+
+    // Bar bg
+    ctx.fillStyle='#F1F5F9';
+    ctx.fillRect(lblW,y,barArea,rowH-6);
+
+    // Bar
+    ctx.fillStyle=bgColor;
+    ctx.fillRect(lblW,y,barW,rowH-6);
+    ctx.fillStyle=barColor;
+    ctx.fillRect(lblW,y,3,rowH-6);
+
+    // Value
+    ctx.fillStyle=barColor;ctx.font='bold 10px sans-serif';ctx.textAlign='left';
+    ctx.fillText(r.days+' hr',lblW+barW+6,y+13);
+
+    // Progress dot
+    const pc=r.progress==='delay'?'#DC2626':r.progress==='need-support'?'#F59E0B':r.progress==='done'?'#1D4ED8':'#16A34A';
+    ctx.beginPath();ctx.arc(W-16,y+10,5,0,Math.PI*2);ctx.fillStyle=pc;ctx.fill();
+  });
+
+  // Legend
+  const legs=[{c:'#DC2626',l:'Danger'},{c:'#F59E0B',l:'Alert'},{c:'#1D4ED8',l:'Normal'}];
+  legs.forEach((l,i)=>{
+    const lx=lblW+i*90;
+    ctx.beginPath();ctx.arc(lx+6,H-8,5,0,Math.PI*2);ctx.fillStyle=l.c;ctx.fill();
+    ctx.fillStyle='#64748B';ctx.font='9px sans-serif';ctx.textAlign='left';
+    ctx.fillText(l.l,lx+14,H-4);
+  });
+}
+
 window.addEventListener('resize',()=>{if($('pHist').classList.contains('on'))renderTrend();});
 
 // ── EXPORT PPT ────────────────────────────────────
